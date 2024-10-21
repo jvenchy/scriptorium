@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATEBASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -18,8 +18,8 @@ model Account {
   firstName       String
   lastName        String
   email           String     @unique
-  avatar          String?
-  phoneNumber     String?
+  avatar          String?    
+  phoneNumber     String
   passwordHash    String
   isAdministrator Boolean    @default(false)
   codeTemplates   CodeTemplate[]
