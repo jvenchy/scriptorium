@@ -10,5 +10,85 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = file:./dev.db
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id              Int        @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String     @unique
+  avatar          String?
+  phoneNumber     String?
+  passwordHash    String
+  isAdministrator Boolean    @default(false)
+  codeTemplates   CodeTemplate[]
+  blogPosts       BlogPost[]
+  comments        Comment[]
+  reports         Report[]
+}
+
+model CodeTemplate {
+  id          Int            @id @default(autoincrement())
+  codeSnippet String?
+  title       String
+  explanation String
+  tags        Tag[]
+  forkedFrom  CodeTemplate?  @relation("ForkRelation", fields: [forkedFromId], references: [id])
+  forkedFromId Int?
+  forks       CodeTemplate[] @relation("ForkRelation")
+  author      Account        @relation(fields: [authorId], references: [id])
+  authorId    Int
+  language    String
+  blogPosts   BlogPost[]
+}
+
+model CodeExecution {
+  id           Int     @id @default(autoincrement())
+  codeString   String
+  errorString  String?
+  outputString String?
+  runTime      Float
+}
+
+model BlogPost {
+  id                Int      @id @default(autoincrement())
+  title             String
+  description       String
+  tags              Tag[]
+  codeTemplates     CodeTemplate[]
+  comments          Comment[]
+  upvotes           Int      @default(0)
+  downvotes         Int      @default(0)
+  numReports        Int      @default(0)
+  author            Account  @relation(fields: [authorId], references: [id])
+  authorId          Int
+  canEdit           Boolean  @default(true)
+  isVisible         Boolean  @default(true)
+  reports           Report[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  author    Account  @relation(fields: [authorId], references: [id])
+  authorId  Int
+  blogPost  BlogPost @relation(fields: [blogPostId], references: [id])
+  blogPostId Int
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id])
+  blogPostId  Int
+  reporter    Account  @relation(fields: [reporterId], references: [id])
+  reporterId  Int
+  explanation String
+}
+
+model Tag {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  codeTemplates CodeTemplate[]
+  blogPosts     BlogPost[]
 }
