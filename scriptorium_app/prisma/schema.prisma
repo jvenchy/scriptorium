@@ -52,29 +52,39 @@ model CodeExecution {
 }
 
 model BlogPost {
-  id                Int      @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   title             String
   description       String
   tags              Tag[]
   codeTemplates     CodeTemplate[]
   comments          Comment[]
-  upvotes           Int      @default(0)
-  downvotes         Int      @default(0)
-  numReports        Int      @default(0)
-  author            Account  @relation(fields: [authorId], references: [id])
+  upvotes           Int       @default(0)
+  downvotes         Int       @default(0)
+  numReports        Int       @default(0)
+  author            Account   @relation(fields: [authorId], references: [id])
   authorId          Int
-  canEdit           Boolean  @default(true)
-  isVisible         Boolean  @default(true)
+  canEdit           Boolean   @default(true)
+  isVisible         Boolean   @default(true)
   reports           Report[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  author    Account  @relation(fields: [authorId], references: [id])
-  authorId  Int
-  blogPost  BlogPost @relation(fields: [blogPostId], references: [id])
+  id                Int        @id @default(autoincrement())
+  content           String
+  author            Account    @relation(fields: [authorId], references: [id])
+  authorId          Int
+  blogPost          BlogPost   @relation(fields: [blogPostId], references: [id])
   blogPostId Int
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  parentCommentId   Int?
+  parentComment     Comment?   @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies           Comment[]  @relation("CommentReplies")
+  upvotes           Int        @default(0)
+  downvotes         Int        @default(0)
+  numReports        Int        @default(0)
 }
 
 model Report {
