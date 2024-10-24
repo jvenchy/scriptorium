@@ -156,7 +156,8 @@ export default async function handler(req, res) {
         upvotes: post.upvotes,
         downvotes: post.downvotes,
         comments: post._count.comments,
-        reports: post._count.reports
+        reports: post._count.reports,
+        visibility: post.isVisible
       }
     }));
 

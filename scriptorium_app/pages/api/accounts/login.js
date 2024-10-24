@@ -21,6 +21,11 @@ export default async function handler(req, res){
     });
   }
 
+  // Ensure all JSON parameters are correct type
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: "One of more parameters are of the incorrect type!" });
+  }
+
   const account = await prisma.account.findUnique({
     where: {
       email,

@@ -1,7 +1,7 @@
+// /pages/api/admin/blog-post/[blogPostId]/edit.js
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import { verifyToken } from '@/utils/auth';
-
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
 
 export default async function handler(req, res) {
@@ -9,88 +9,83 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // extract token from Authorization header
+  // Extract token from Authorization header
   const token = req.headers.authorization;
-
   if (!token || !token.startsWith('Bearer ')) {
     return res.status(401).json({ error: "Authorization header is missing or invalid" });
   }
 
-  // verify the token
+  // Verify the token
   const decodedToken = verifyToken(token, ACCESS_TOKEN_SECRET);
-
   if (!decodedToken) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
-
   const email = decodedToken.email;
 
-  // fetch user id from database
+  // Fetch user id from database
   const account = await prisma.account.findUnique({
     where: { email },
     select: {
       id: true
     },
   });
-
   const userId = account.id;
 
-  // get blog post ID from URL parameter
+  // Get blog post ID from URL parameter
   const { id } = req.query;
-
   if (!id) {
     return res.status(400).json({ error: "Blog post ID is required" });
   }
 
   try {
-    // first check if blog post exists and if user has permission to edit
+    // First check if blog post exists and if user has permission to edit
     const existingPost = await prisma.blogPost.findUnique({
       where: { id: parseInt(id) },
-      include: {
-        author: true,
-        tags: true, // Ensure you include the fields you actually have
-        codeTemplates: true
-      }
+      select: {
+        id: true,
+        authorId: true,
+        canEdit: true, // Use select to get scalar fields
+        tags: true,
+        codeTemplates: true,
+      },
     });
 
     if (!existingPost) {
       return res.status(404).json({ error: "Blog post not found" });
     }
 
-    // check if user is author or editor (if you have an editor concept)
-    const canEdit = existingPost.authorId === userId;
-
-    if (!canEdit) {
+    // Check if user is author
+    const isAuthor = existingPost.authorId === userId;
+    if (!isAuthor || !existingPost.canEdit) {
       return res.status(403).json({ error: "You don't have permission to edit this post" });
     }
 
-    // extract fields from request body
+    // Extract fields from request body
     const { title, description, tags, codeTemplates } = req.body;
 
-    // prepare update data
+    // Prepare update data
     const updateData = {};
-
-    // only include fields that are provided
+    // Only include fields that are provided
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
 
-    // handle tags if provided
+    // Handle tags if provided
     if (tags !== undefined) {
       updateData.tags = {
-        set: [],  // first disconnect all existing tags
-        connect: tags.map(tag => ({ id: tag }))  // then connect new tags
+        set: [], // First disconnect all existing tags
+        connect: tags.map(tag => ({ id: tag })), // Then connect new tags
       };
     }
 
-    // handle code templates if provided
+    // Handle code templates if provided
     if (codeTemplates !== undefined) {
       updateData.codeTemplates = {
-        set: [],  // first disconnect all existing templates
-        connect: codeTemplates.map(templateId => ({ id: templateId }))
+        set: [], // First disconnect all existing templates
+        connect: codeTemplates.map(templateId => ({ id: templateId })),
       };
     }
 
-    // update blog post
+    // Update blog post
     const updatedBlogPost = await prisma.blogPost.update({
       where: { id: parseInt(id) },
       data: updateData,
@@ -100,10 +95,10 @@ export default async function handler(req, res) {
         author: {
           select: {
             id: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
 
     return res.status(200).json({
@@ -114,7 +109,6 @@ export default async function handler(req, res) {
       tags: updatedBlogPost.tags,
       codeTemplates: updatedBlogPost.codeTemplates,
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });

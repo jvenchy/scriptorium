@@ -109,9 +109,11 @@ model Comment {
   replies           Comment[]  @relation("CommentReplies")
   upvotes           Int        @default(0)
   downvotes         Int        @default(0)
+  votes             CommentVote[]
   numReports        Int        @default(0)
   reports           CommentReport[] 
-  votes             CommentVote[]
+  canEdit           Boolean   @default(true)
+  isVisible         Boolean   @default(true)
 }
 
 model PostReport {

@@ -37,8 +37,12 @@ export default async function handler(req, res) {
 
   // extract fields from request body with default values
   const { title, description, tags = [], codeTemplates = [] } = req.body;
+  
+  // Ensure all JSON parameters are correct type
+  if (typeof title !== 'string' || typeof description !== 'string') {
+    return res.status(400).json({ error: "One of more parameters are of the incorrect type!" });
+  }
 
-  // TODO: add more comprehensive checks
   if (!title || !description || !authorId) {
     return res.status(400).json({ error: "Title, description, and authorId are required." });
   }
