@@ -25,7 +25,9 @@ model Account {
   codeTemplates   CodeTemplate[]
   blogPosts       BlogPost[]
   comments        Comment[]
-  reports         Report[]
+  postVotes       BlogPostVote[]
+  commentVotes    CommentVote[]
+
 }
 
 model CodeTemplate {
@@ -61,13 +63,36 @@ model BlogPost {
   upvotes           Int       @default(0)
   downvotes         Int       @default(0)
   numReports        Int       @default(0)
+  votes             BlogPostVote[]
   author            Account   @relation(fields: [authorId], references: [id])
   authorId          Int
   canEdit           Boolean   @default(true)
   isVisible         Boolean   @default(true)
-  reports           Report[]
+  reports           PostReport[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model BlogPostVote { 
+  id          Int      @id @default(autoincrement())
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id])
+  blogPostId  Int
+  account     Account  @relation(fields: [accountId], references: [id])
+  accountId   Int
+  voteType    String
+
+  @@unique([blogPostId, accountId])
+}
+
+model CommentVote {
+  id          Int      @id @default(autoincrement())
+  comment     Comment  @relation(fields: [commentId], references: [id])
+  commentId   Int
+  account     Account  @relation(fields: [accountId], references: [id])
+  accountId   Int
+  voteType    String
+
+  @@unique([commentId, accountId])
 }
 
 model Comment {
@@ -85,13 +110,22 @@ model Comment {
   upvotes           Int        @default(0)
   downvotes         Int        @default(0)
   numReports        Int        @default(0)
+  reports           CommentReport[] 
+  votes             CommentVote[]
 }
 
-model Report {
+model PostReport {
   id          Int      @id @default(autoincrement())
   blogPost    BlogPost @relation(fields: [blogPostId], references: [id])
   blogPostId  Int
-  reporter    Account  @relation(fields: [reporterId], references: [id])
+  reporterId  Int
+  explanation String
+}
+
+model CommentReport {
+  id          Int      @id @default(autoincrement())
+  comment     Comment @relation(fields: [commentId], references: [id])
+  commentId   Int
   reporterId  Int
   explanation String
 }
