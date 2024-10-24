@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
    // Ensure all JSON parameters are correct type
-   if (typeof firstName !== 'string' || typeof lastName !== 'string' || typeof phoneNumber !== 'string' || typeof email !== 'string' || typeof password !== 'string' || typeof avatar !== 'string') {
+   if (typeof firstName !== 'string' || typeof lastName !== 'string' || typeof phoneNumber !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ error: "Parameters are of the incorrect type!" });
   }
 

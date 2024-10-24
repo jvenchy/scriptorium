@@ -6,11 +6,13 @@ import jwt from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET;
 
-// generate expiration time for access token (5-60 minutes)
+const ACCESS_TOKEN_EXPIRES_MINUTES = process.env.ACCESS_TOKEN_EXPIRES_MINUTES;
+const REFRESH_TOKEN_EXPIRES_MINUTES = process.env.REFRESH_TOKEN_EXPIRES_MINUTES;
+
+// generate expiration time for access token (set somewhere from 5-60 minutes)
 export const generateAccessTokenExpiresAt = () => {
   const now = new Date();
-  const randomMinutes = Math.floor(Math.random() * (60 - 5 + 1)) + 5; // between 5 and 60 minutes
-  now.setMinutes(now.getMinutes() + randomMinutes);
+  now.setMinutes(now.getMinutes() + ACCESS_TOKEN_EXPIRES_MINUTES);
   return now;
 };
 
@@ -20,14 +22,10 @@ export async function hashPassword(password) {
   return await bcrypt.hash(password, saltRounds);
 }
 
-// generate expiration time for refresh token (2 hours - 30 days)
+// generate expiration time for refresh token (set somewhere from 2 hours - 30 days)
 export const generateRefreshTokenExpiresAt = () => {
   const now = new Date();
-  const minMillis = 2 * 60 * 60 * 1000;  // 2 hours
-  const maxMillis = 30 * 24 * 60 * 60 * 1000;  // 30 days
-  
-  const randomMillis = Math.floor(Math.random() * (maxMillis - minMillis + 1)) + minMillis;
-  now.setTime(now.getTime() + randomMillis);
+  now.setMinutes(now.getMinutes() + REFRESH_TOKEN_EXPIRES_MINUTES);
   return now;
 };
 
@@ -37,7 +35,7 @@ export const generateToken = (payload, secret, expiresAt) => {
     {
       email: payload.email,
       isAdministrator: payload.isAdministrator,
-      expiresAt: expiresAt.toISOString(),
+      exp: Math.floor(expiresAt.getTime() / 1000)
     },
     secret
   );
@@ -50,8 +48,20 @@ export const verifyToken = (token, secret) =>
   }
   token = token.split(" ")[1];
   try {
-    return jwt.verify(token, secret);
+    const decodedToken = jwt.verify(token, secret);
+
+    // manual check for expiration
+    const currentTime = Math.floor(Date.now() / 1000); // current time in seconds since epoch
+    console.log(decodedToken.exp);
+    console.log(currentTime);
+    if (decodedToken.exp < currentTime) {
+      console.error("Token has expired");
+      return null;
+    }
+
+    return decodedToken;
   } catch (err) {
+    console.error(err);
     return null;
   }
 };
