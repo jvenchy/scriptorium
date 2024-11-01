@@ -29,11 +29,6 @@ export default async function handler(req, res) {
   // extract fields from the request body that need to be updated
   const { firstName, lastName, newEmail, avatar, phoneNumber, password } = req.body;
 
-    // Ensure all JSON parameters are correct type
-  if (typeof firstName !== 'string' || typeof lastName !== 'string' || typeof phoneNumber !== 'string' || typeof newEmail !== 'string' || typeof password !== 'string' || typeof avatar !== 'string') {
-    return res.status(400).json({ error: "One of more parameters are of the incorrect type!" });
-  }
-
   try {
     // Fetch the current user profile from the database to ensure it exists
     const account = await prisma.account.findUnique({

@@ -25,9 +25,7 @@ model Account {
   codeTemplates   CodeTemplate[]
   blogPosts       BlogPost[]
   comments        Comment[]
-  postVotes       BlogPostVote[]
-  commentVotes    CommentVote[]
-
+  reports         Report[]
 }
 
 model CodeTemplate {
@@ -63,36 +61,13 @@ model BlogPost {
   upvotes           Int       @default(0)
   downvotes         Int       @default(0)
   numReports        Int       @default(0)
-  votes             BlogPostVote[]
   author            Account   @relation(fields: [authorId], references: [id])
   authorId          Int
   canEdit           Boolean   @default(true)
   isVisible         Boolean   @default(true)
-  reports           PostReport[]
+  reports           Report[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-}
-
-model BlogPostVote { 
-  id          Int      @id @default(autoincrement())
-  blogPost    BlogPost @relation(fields: [blogPostId], references: [id])
-  blogPostId  Int
-  account     Account  @relation(fields: [accountId], references: [id])
-  accountId   Int
-  voteType    String
-
-  @@unique([blogPostId, accountId])
-}
-
-model CommentVote {
-  id          Int      @id @default(autoincrement())
-  comment     Comment  @relation(fields: [commentId], references: [id])
-  commentId   Int
-  account     Account  @relation(fields: [accountId], references: [id])
-  accountId   Int
-  voteType    String
-
-  @@unique([commentId, accountId])
 }
 
 model Comment {
@@ -109,25 +84,14 @@ model Comment {
   replies           Comment[]  @relation("CommentReplies")
   upvotes           Int        @default(0)
   downvotes         Int        @default(0)
-  votes             CommentVote[]
   numReports        Int        @default(0)
-  reports           CommentReport[] 
-  canEdit           Boolean   @default(true)
-  isVisible         Boolean   @default(true)
 }
 
-model PostReport {
+model Report {
   id          Int      @id @default(autoincrement())
   blogPost    BlogPost @relation(fields: [blogPostId], references: [id])
   blogPostId  Int
-  reporterId  Int
-  explanation String
-}
-
-model CommentReport {
-  id          Int      @id @default(autoincrement())
-  comment     Comment @relation(fields: [commentId], references: [id])
-  commentId   Int
+  reporter    Account  @relation(fields: [reporterId], references: [id])
   reporterId  Int
   explanation String
 }
