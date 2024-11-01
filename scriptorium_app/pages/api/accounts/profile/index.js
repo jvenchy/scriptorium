@@ -1,3 +1,5 @@
+// get profile, read profile
+
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import { verifyToken } from '@/utils/auth'; // Ensure this function verifies the JWT
