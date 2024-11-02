@@ -13,7 +13,7 @@ async function runCode(file, language, stdin = '') {
       command = `node ${file}`;
       break;
     case 'python':
-      command = `python ${file}`;
+      command = `python3 ${file}`;
       break;
     case 'java':
       command = `javac ${file} && java -cp ${path.dirname(file)} Main`;
