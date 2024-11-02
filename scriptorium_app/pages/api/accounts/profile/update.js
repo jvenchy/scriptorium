@@ -29,6 +29,16 @@ export default async function handler(req, res) {
   // extract fields from the request body that need to be updated
   const { firstName, lastName, newEmail, avatar, phoneNumber, password } = req.body;
 
+  // validate types of fields
+  if ((firstName && typeof firstName !== 'string') ||
+      (lastName && typeof lastName !== 'string') ||
+      (newEmail && typeof newEmail !== 'string') ||
+      (avatar && typeof avatar !== 'string') ||
+      (phoneNumber && typeof phoneNumber !== 'string') ||
+      (password && typeof password !== 'string')) {
+    return res.status(400).json({ error: "Invalid data types provided" });
+  }
+
   try {
     // Fetch the current user profile from the database to ensure it exists
     const account = await prisma.account.findUnique({

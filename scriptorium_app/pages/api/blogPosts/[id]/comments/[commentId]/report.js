@@ -42,11 +42,23 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Blog post ID and comment ID are required" });
   }
 
+  if (isNaN(blogPostId)) {
+    return res.status(400).json({ error: "Blog post ID must be a number" });
+  }
+
+  if (isNaN(commentId)) {
+    return res.status(400).json({ error: "Comment ID must be a number" });
+  }
+
   // check if explanation is provided
   const { explanation } = req.body;
 
   if (!explanation) {
     return res.status(400).json({ error: "Explanation is required" });
+  }
+
+  if (typeof explanation !== 'string') {
+    return res.status(400).json({ error: "Invalid data type provided" });
   }
 
   try {

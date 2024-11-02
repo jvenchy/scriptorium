@@ -15,6 +15,10 @@ const hideBlogPost = async (req, res) => {
     return res.status(400).json({ error: "Blog post ID is required" });
   }
 
+  if (isNaN(blogPostId)) {
+    return res.status(400).json({ error: "Blog post ID must be a number" });
+  }
+
   try {
     // Update blog post to set isVisible to false and canEdit to false
     const updatedBlogPost = await prisma.blogPost.update({
