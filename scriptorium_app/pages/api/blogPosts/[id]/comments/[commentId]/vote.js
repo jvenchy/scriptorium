@@ -44,9 +44,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Comment ID is required" });
   }
 
-  if (!voteType || !['upvote', 'downvote'].includes(voteType)) {
+  if (isNaN(commentId)) {
+    return res.status(400).json({ error: "Comment ID must be a number" });
+  }
+
+  if (!voteType || typeof voteType !== 'string' || !['upvote', 'downvote'].includes(voteType)) {
     return res.status(400).json({ error: "Valid voteType (upvote or downvote) is required" });
   }
+
+  
 
   try {
     // Check if the comment exists

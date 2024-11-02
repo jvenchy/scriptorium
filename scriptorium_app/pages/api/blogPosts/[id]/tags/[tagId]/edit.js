@@ -38,6 +38,16 @@ export default async function handler(req, res) {
   if (!tagId) {
     return res.status(400).json({ error: "Tag ID is required" });
   }
+  if (isNaN(tagId)) {
+    return res.status(400).json({ error: "Tag ID must be a number" });
+  }
+
+  if (!name) {
+    return res.status(400).json({ error: "New tag name is required" });
+  }
+  if (typeof name !== 'string') {
+    return res.status(400).json({ error: "Invalid data type provided" });
+  }
 
   try {
     // Check if the tag exists

@@ -42,7 +42,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Blog post ID is required" });
   }
 
-  if (!voteType || !['upvote', 'downvote'].includes(voteType)) {
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Blog post ID must be a number" });
+  }
+
+  if (!voteType || typeof voteType !== 'string' || !['upvote', 'downvote'].includes(voteType)) {
     return res.status(400).json({ error: "Valid voteType (upvote or downvote) is required" });
   }
 

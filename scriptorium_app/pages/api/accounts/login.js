@@ -21,6 +21,13 @@ export default async function handler(req, res){
     });
   }
 
+  // validate types of fields
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({
+      error: "Invalid data types provided",
+    });
+  }
+
   const account = await prisma.account.findUnique({
     where: {
       email,

@@ -8,8 +8,8 @@ const getReportedBlogPosts = async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Extract sortBy from query parameters
-  const { sortBy } = req.query;
+  // extract query parameters
+  const { sortBy, page = 1, limit = 10 } = req.query;
 
   let sortField;
   switch (sortBy) {
@@ -23,16 +23,29 @@ const getReportedBlogPosts = async (req, res) => {
   }
 
   try {
-    // Fetch reported blog posts, sorted by the specified field
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
+    // validate page and limit parameters
+    if (isNaN(pageNumber) || pageNumber < 1) {
+      return res.status(400).json({ error: "invalid page number" });
+    }
+    if (isNaN(pageSize) || pageSize < 1) {
+      return res.status(400).json({ error: "invalid limit number" });
+    }
+
+    // fetch reported blog posts, sorted by the specified field, with pagination
     const reportedBlogPosts = await prisma.blogPost.findMany({
       where: { numReports: { gt: 0 } },
       orderBy: sortField,
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
     });
 
     return res.status(200).json(reportedBlogPosts);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(400).json({ error: "Error retrieving reported blog posts" });
   } finally {
     await prisma.$disconnect();
   }
