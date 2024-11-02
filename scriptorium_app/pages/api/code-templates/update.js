@@ -5,7 +5,8 @@ import { verifyToken } from '@/utils/auth';
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  // Allow only PUT requests
+  if (req.method !== "PUT") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -24,9 +25,15 @@ export default async function handler(req, res) {
   }
 
   const email = decodedToken.email;
+  const { codeTemplateId, codeSnippet, title, explanation, tags, language } = req.body;
+
+  // Ensure required fields are present
+  if (!codeTemplateId || !title || !explanation || !language) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
 
   try {
-    // Fetch the account ID based on the authenticated user's email
+    // Fetch the account to ensure the user exists
     const account = await prisma.account.findUnique({
       where: { email },
       select: { id: true },
@@ -36,23 +43,26 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Account not found" });
     }
 
-    const { codeSnippet, title, explanation, tags, forkedFromId, language } = req.body;
+    // Check if the authenticated user is the author of the code template
+    const codeTemplate = await prisma.codeTemplate.findUnique({
+      where: { id: codeTemplateId },
+      select: { authorId: true },
+    });
 
-    // Ensure required fields are present
-    if (!title || !explanation || !language) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!codeTemplate || codeTemplate.authorId !== account.id) {
+      return res.status(403).json({ error: "You are not authorized to edit this code template" });
     }
 
-    // Create the code template
-    const codeTemplate = await prisma.codeTemplate.create({
+    // Update the code template
+    const updatedCodeTemplate = await prisma.codeTemplate.update({
+      where: { id: codeTemplateId },
       data: {
         codeSnippet,
         title,
         explanation,
         language,
-        forkedFromId,
-        authorId: account.id,
         tags: {
+          set: [],  // Clear existing tags
           connectOrCreate: tags.map((tagName) => ({
             where: { name: tagName },
             create: { name: tagName },
@@ -62,8 +72,8 @@ export default async function handler(req, res) {
       select: { id: true },
     });
 
-    // Respond with the newly created code template ID
-    return res.status(201).json({ codeTemplateId: codeTemplate.id });
+    // Respond with the updated code template ID
+    return res.status(200).json({ codeTemplateId: updatedCodeTemplate.id });
 
   } catch (error) {
     console.error(error);
