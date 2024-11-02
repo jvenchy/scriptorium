@@ -41,6 +41,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Comment ID is required" });
   }
 
+  if (isNaN(commentId)) {
+    return res.status(400).json({ error: "Comment ID must be a number" });
+  }
+
+  if (typeof content !== 'string') {
+    return res.status(400).json({ error: "Invalid data type provided" });
+  }
+
   try {
     // Find the comment to ensure it exists
     const comment = await prisma.comment.findUnique({

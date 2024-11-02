@@ -43,6 +43,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Comment ID is required" });
   }
 
+  if (isNaN(commentId)) {
+    return res.status(400).json({ error: "Comment ID must be a number" });
+  }
+
   try {
     // Fetch the comment to be deleted
     const comment = await prisma.comment.findUnique({

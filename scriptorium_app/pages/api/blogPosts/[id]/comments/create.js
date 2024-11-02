@@ -26,18 +26,23 @@ export default async function handler(req, res) {
 
   const email = decodedToken.email;
 
-  // fetch user id from database
+  // Fetch user id from database
   const account = await prisma.account.findUnique({
     where: { email },
-    select: {
-      id: true
-    },
+    select: { id: true },
   });
 
   const authorId = account.id;
 
   // Extract blog post ID from URL parameters
-  const { id: blogPostId, parentCommentId } = req.query;
+  const { id: blogPostId } = req.query;
+
+  // Extract parentCommentId from request body and validate
+  let { parentCommentId } = req.body;
+  if (parentCommentId && isNaN(parentCommentId)) {
+    return res.status(400).json({ error: "parentCommentId must be a number" });
+  }
+  parentCommentId = parentCommentId ? parseInt(parentCommentId) : null;
 
   // Extract content from request body
   const { content } = req.body;
@@ -47,19 +52,32 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Content, authorId, and blogPostId are required." });
   }
 
+  if (isNaN(blogPostId)) {
+    return res.status(400).json({ error: "Blog post ID must be a number" });
+  }
+
+  if (typeof content !== 'string') {
+    return res.status(400).json({ error: "Invalid data type provided" });
+  }
+
   try {
     // Create a new comment or reply
-    const newComment = await prisma.comment.create({
-      data: {
-        content,
-        author: {
-          connect: { id: authorId } // Connect the author to the comment
-        },
-        blogPost: {
-          connect: { id: parseInt(blogPostId) } // Connect the blog post to the comment
-        },
-        parentComment: parentCommentId ? { connect: { id: parseInt(parentCommentId) } } : undefined // Connect to parent comment if parentCommentId exists
+    const newCommentData = {
+      content,
+      author: {
+        connect: { id: authorId } // Connect the author to the comment
       },
+      blogPost: {
+        connect: { id: parseInt(blogPostId) } // Connect the blog post to the comment
+      }
+    };
+
+    if (parentCommentId) {
+      newCommentData.parentComment = { connect: { id: parseInt(parentCommentId) } }; // Connect to parent comment if parentCommentId exists
+    }
+
+    const newComment = await prisma.comment.create({
+      data: newCommentData,
     });
 
     return res.status(201).json({
