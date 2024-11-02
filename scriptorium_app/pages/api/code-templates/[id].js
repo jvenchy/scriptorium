@@ -7,7 +7,19 @@ export default async function handler(req, res) {
     try {
       const template = await prisma.codeTemplate.findUnique({
         where: { id: Number(id) },
-        include: { tags: true, author: true, forks: true },
+        include: { 
+          tags: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true
+            }
+          },
+          forks: true
+        },
       });
       if (!template) {
         res.status(404).json({ error: 'CodeTemplate not found' });
