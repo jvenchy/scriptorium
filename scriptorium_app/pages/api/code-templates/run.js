@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 const { spawn } = require('child_process');
 
+export const SUPPORTED_LANGUAGES = ['java', 'javascript', 'python', 'c', 'cpp'];
+
 async function runCode(file, language, stdin = '') {
   switch (language.toLowerCase()) {
     case 'javascript':

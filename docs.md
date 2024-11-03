@@ -22,6 +22,8 @@ To set up the environment and start the server, follow these steps:
 - **Response:**
   - `codeTemplateId` _(CodeTemplate)_: ID of the created code template.
 - **Authentication:** Logged in
+- **Notes:** 
+    - The supported languages are `java`, `javascript`, `python`, `c`, and `cpp`
 - **Example Request:**
 ```json
 POST /api/code-templates/create
@@ -30,6 +32,7 @@ POST /api/code-templates/create
     "title": "Simple JavaScript Console Log",
     "explanation": "This code prints Hello World to the console.",
     "tags": ["JavaScript", "Beginner", "Example"],
+    "forkedFromId": null,
     "language": "JavaScript"
   }
 ```
@@ -83,7 +86,6 @@ GET /api/code-templates/3
         "email": "john.doe@example.com",
         "avatar": null
     },
-    "forks": []
 }
 ```
 
@@ -155,6 +157,8 @@ GET /api/code-templates?authorId=1&page=2&pageSize=2
   - `tags` _(array of strings)_: Updated tags.
   - `language` _(ProgrammingLanguage)_: Updated programming language.
 - **Authentication:** Account must be the author of the `codeTemplateId`.
+- **Notes:** 
+    - The supported languages are `java`, `javascript`, `python`, `c`, and `cpp`
 - **Example Request:**
 ```json
 PUT /api/code-templates/update
@@ -205,7 +209,9 @@ DELETE /api/code-templates/delete
   - `errorString`: Error message, if any.
   - `outputString`: Output of the code execution.
 - **Authentication:** None
-- **Notes:** Code execution times out after 5 seconds.
+- **Notes:** 
+    - The supported languages are `java`, `javascript`, `python`, `c`, and `cpp`
+    - Code execution times out after 5 seconds.
 - **Example Request:**
 ```json
 POST /api/code-templates/run

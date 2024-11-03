@@ -18,7 +18,6 @@ export default async function handler(req, res) {
               avatar: true
             }
           },
-          forks: true
         },
       });
       if (!template) {
