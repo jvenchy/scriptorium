@@ -150,7 +150,7 @@ To set up the environment and start the server, follow these steps:
   ```
 
 ### Update User Profile
-- **Endpoint:** `PUT /api/accounts/profile`
+- **Endpoint:** `PUT /api/accounts/profile/update`
 - **Description:** Updates specific fields of the authenticated user's profile based on provided data in the request body.
 - **Headers:**
   - `Authorization` _(string)_: Bearer token with the user's access token (e.g., `Bearer <token>`).
@@ -181,7 +181,7 @@ To set up the environment and start the server, follow these steps:
   - `500 Internal Server Error`: On server error during profile update.
 - **Example Request:**
   ```json
-  PUT /api/accounts/profile
+  PUT /api/accounts/profile/update
   Headers: {
       "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -454,7 +454,7 @@ POST /api/code-templates/run
 ```
 
 ### Create Blog Post
-- **Endpoint:** `POST /api/blogs/create`
+- **Endpoint:** `POST /api/blogPosts/create`
 - **Description:** Creates a new blog post associated with the authenticated user, including optional tags and code templates.
 - **Headers:**
   - `Authorization` _(string)_: Bearer token containing the user's access token (e.g., `Bearer <access_token>`).
@@ -483,7 +483,7 @@ POST /api/code-templates/run
   - `500 Internal Server Error`: On server error during post creation.
 - **Example Request:**
   ```json
-  POST /api/blogs/create
+  POST /api/blogPosts/create
   Headers: {
       "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -508,7 +508,7 @@ POST /api/code-templates/run
 
 ### Get All Blog Posts with Filters
 
-- **Endpoint:** `GET /api/blogs`
+- **Endpoint:** `GET /api/blogPosts`
 - **Description:** Retrieves a list of blog posts with optional filters for title, description, tags, and code templates. Supports sorting and pagination.
 - **Query Parameters:**
   - `title` _(string, optional)_: Filters posts by a title containing this string.
@@ -562,7 +562,7 @@ POST /api/code-templates/run
   - `500 Internal Server Error`: On server error during data retrieval.
 - **Example Request:**
   ```plaintext
-  GET /api/blogs?title=Intro&tags=1&tags=2&sort=upvotes&page=2&limit=5
+  GET /api/blogPosts?title=Intro&tags=1&tags=2&sort=upvotes&page=2&limit=5
   ```
 - **Example Response:**
   ```json
@@ -607,7 +607,7 @@ POST /api/code-templates/run
   ```
 
 ### Edit Blog Post
-- **Endpoint:** `PUT /api/admin/blog-post/[blogPostId]/edit`
+- **Endpoint:** `PUT /api/blogPosts/[id]/edit`
 - **Description:** Edits an existing blog post associated with the authenticated user, allowing modifications to the title, description, tags, and code templates.
 - **Headers:**
   - `Authorization` _(string)_: Bearer token containing the user's access token (e.g., `Bearer <access_token>`).
@@ -641,7 +641,7 @@ POST /api/code-templates/run
   - `500 Internal Server Error`: On server error during post update.
 - **Example Request:**
   ```json
-  PUT /api/admin/blog-post/1/edit
+  PUT /api/blogPosts/1/edit
   Headers: {
       "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -665,7 +665,7 @@ POST /api/code-templates/run
   ```
 
 ### Delete Blog Post
-- **Endpoint:** `DELETE /api/admin/blog-post/[blogPostId]`
+- **Endpoint:** `DELETE /api/blogPosts/[id]/delete`
 - **Description:** Deletes a blog post if the request is made by the post’s author or an administrator.
 - **Headers:**
   - `Authorization` _(string)_: Bearer token containing the user's access token (e.g., `Bearer <access_token>`).
@@ -689,7 +689,7 @@ POST /api/code-templates/run
   - `500 Internal Server Error`: On server error during post deletion.
 - **Example Request:**
   ```json
-  DELETE /api/admin/blog-post/1
+  DELETE /api/blogPosts/1/delete
   Headers: {
       "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -704,7 +704,7 @@ POST /api/code-templates/run
 
 
 ### Get Blog Post with Details
-- **Endpoint:** `GET /api/admin/blog-post/[blogPostId]`
+- **Endpoint:** `GET /api/blogPosts/[id]`
 - **Description:** Fetches a blog post along with related data, including the author details, tags, code templates, and comments.
 - **URL Parameters:**
   - `blogPostId` _(integer, required)_: ID of the blog post to fetch.
@@ -784,7 +784,7 @@ POST /api/code-templates/run
   ```
 
 ### Report Blog Post
-- **Endpoint:** `POST /api/blog-posts/[id]/report`
+- **Endpoint:** `POST /api/blogPosts/[id]/report`
 - **Description:** Allows an authenticated user to report a blog post with an explanation. It creates a report entry linked to the blog post and increments the report count.
 - **URL Parameters:**
   - `id` _(integer, required)_: ID of the blog post being reported.
@@ -810,7 +810,7 @@ POST /api/code-templates/run
   - `500 Internal Server Error`: On server error during report creation.
 - **Example Request:**
   ```json
-  POST /api/blog-posts/1/report
+  POST /api/blogPosts/1/report
   Authorization: Bearer <token>
   
   {
@@ -828,7 +828,7 @@ POST /api/code-templates/run
   ```
 
 ### Vote on a Blog Post
-- **Endpoint:** `POST /api/blog-posts/[id]/vote`
+- **Endpoint:** `POST /api/blogPosts/[id]/vote`
 - **Description:** Allows a user to upvote or downvote a blog post. The `userId` is inferred from the provided authentication token.
 - **Request Body:**
   - `voteType` _(string)_: The type of vote to be recorded. Must be either `"upvote"` or `"downvote"`.
@@ -842,7 +842,7 @@ POST /api/code-templates/run
 - **Authentication:** Required (Bearer token in the Authorization header)
 - **Example Request:**
   ```json
-  POST /api/blog-posts/3/vote
+  POST /api/blogPosts/3/vote
   {
     "voteType": "upvote"
   }
@@ -861,7 +861,7 @@ POST /api/code-templates/run
   ```
 
 ### Create a Tag for a Blog Post
-- **Endpoint:** `POST /api/blog-posts/[id]/tags/create`
+- **Endpoint:** `POST /api/blogPosts/[id]/tags/create`
 - **Description:** Creates a new tag for a specific blog post. The `authorId` is inferred from the provided authentication token.
 - **Request Body:**
   - `name` _(string)_: The name of the tag to be created. Must be unique for each blog post.
@@ -870,7 +870,7 @@ POST /api/code-templates/run
 - **Authentication:** Required (Bearer token in the Authorization header)
 - **Example Request:**
   ```json
-  POST /api/blog-posts/3/tags/create
+  POST /api/blogPosts/3/tags/create
   {
     "name": "Technology"
   }
@@ -884,7 +884,7 @@ POST /api/code-templates/run
   ```
 
 ### Get All Tags
-- **Endpoint:** `GET /api/tags`
+- **Endpoint:** `GET /api/blogPosts/[id]/tags`
 - **Description:** Retrieves a paginated list of tags. No authentication is required.
 - **Query Parameters:**
   - `page` _(number)_: The page number to retrieve (default is 1).
@@ -893,7 +893,7 @@ POST /api/code-templates/run
   - Returns an object containing the list of tags and pagination metadata.
 - **Example Request:**
   ```json
-  GET /api/tags?page=2&limit=5
+  GET /api/blogPosts/1/tags?page=2&limit=5
   ```
 - **Example Response:**
   ```json
@@ -917,7 +917,7 @@ POST /api/code-templates/run
   ```
 
 ### Update Tag
-- **Endpoint:** `PUT /api/tags/[id]/edit`
+- **Endpoint:** `PUT /api/blogPosts/[id]/tags/[tagId]/edit`
 - **Description:** Updates the name of an existing tag. Authorization is required.
 - **URL Parameters:**
   - `id` _(number)_: The ID of the tag to update.
@@ -934,7 +934,7 @@ POST /api/code-templates/run
   - `400 Bad Request`: If the new tag name already exists.
 - **Example Request:**
   ```json
-  PUT /api/tags/1/edit
+  PUT /api/blogPosts/1/tags/1/edit
   Authorization: Bearer your_jwt_token
   {
     "name": "Updated Tag Name"
@@ -949,7 +949,7 @@ POST /api/code-templates/run
   ```
 
 ### Delete Tag
-- **Endpoint:** `DELETE /api/tags/[id]`
+- **Endpoint:** `DELETE /api/blogPosts/[id]/tags/[tagId]/delete`
 - **Description:** Deletes an existing tag. Authorization is required to ensure that only the tag author can delete it.
 - **URL Parameters:**
   - `id` _(number)_: The ID of the tag to delete.
@@ -959,7 +959,7 @@ POST /api/code-templates/run
   - A valid JWT must be provided in the `Authorization` header as a Bearer token.
 - **Example Request:**
   ```json
-  DELETE /api/tags/1
+  DELETE /api/blogPosts/1/tags/1/delete
   Authorization: Bearer your_jwt_token
   ```
 - **Example Response:**
@@ -970,7 +970,7 @@ POST /api/code-templates/run
   ```
 
 ### Get Comments for a Blog Post
-- **Endpoint:** `GET /api/blog-posts/[id]/comments`
+- **Endpoint:** `GET /api/blogPosts/[id]/comments`
 - **Description:** Retrieves comments associated with a specific blog post, including pagination and sorting options.
 - **URL Parameters:**
   - `id` _(number)_: The ID of the blog post for which to retrieve comments.
@@ -985,7 +985,7 @@ POST /api/code-templates/run
   - Returns a list of comments along with pagination metadata.
 - **Example Request:**
   ```json
-  GET /api/blog-posts/1/comments?sort=upvotes&page=1&limit=10
+  GET /api/blogPosts/1/comments?sort=upvotes&page=1&limit=10
   ```
 - **Example Response:**
   ```json
@@ -1014,7 +1014,7 @@ POST /api/code-templates/run
   ```
 
 ### Create a Comment for a Blog Post
-- **Endpoint:** `POST /api/blog-posts/[id]/comments/create`
+- **Endpoint:** `POST /api/blogPosts/[id]/comments/create`
 - **Description:** Creates a new comment (or reply) for a specific blog post.
 - **URL Parameters:**
   - `id` _(number)_: The ID of the blog post for which to create a comment.
@@ -1027,7 +1027,7 @@ POST /api/code-templates/run
   - Returns the newly created comment object, including its ID, content, author ID, blog post ID, parent comment ID (if applicable), and timestamps.
 - **Example Request:**
   ```json
-  POST /api/blog-posts/1/comments/create
+  POST /api/blogPosts/1/comments/create
   Authorization: Bearer your_jwt_token
   Content-Type: application/json
   {
@@ -1049,7 +1049,7 @@ POST /api/code-templates/run
   ```
 
 ### Get Replies for a Comment
-- **Endpoint:** `GET /api/blog-posts/[id]/comments/[commentId]/replies`
+- **Endpoint:** `GET /api/blogPosts/[id]/comments/[commentId]/replies`
 - **Description:** Retrieves replies (child comments) for a specific comment under a blog post, with pagination support.
 - **URL Parameters:**
   - `id` _(number)_: The ID of the blog post.
@@ -1061,7 +1061,7 @@ POST /api/code-templates/run
   - Returns an array of replies (comments) along with pagination metadata.
 - **Example Request:**
   ```plaintext
-  GET /api/blog-posts/1/comments/10/replies?page=1&limit=5
+  GET /api/blogPosts/1/comments/10/replies?page=1&limit=5
   ```
 - **Example Response:**
   ```json
@@ -1089,7 +1089,7 @@ POST /api/code-templates/run
   ```
 
 ### Edit a Comment
-- **Endpoint:** `PUT /api/blog-posts/[id]/comments/[commentId]/edit`
+- **Endpoint:** `PUT /api/blogPosts/[id]/comments/[commentId]/edit`
 - **Description:** Edits an existing comment by updating its content. Only the author of the comment can edit it, and certain comments may be marked as uneditable.
 - **URL Parameters:**
   - `commentId` _(number)_: The ID of the comment to be edited.
@@ -1101,7 +1101,7 @@ POST /api/code-templates/run
   - Returns the updated comment object.
 - **Example Request:**
   ```json
-  PUT /api/comments/1/edit
+  PUT /api/blogPosts/1/comments/1/edit
   Authorization: Bearer your_jwt_token
 
   {
@@ -1122,7 +1122,7 @@ POST /api/code-templates/run
   ```
 
 ### Delete a Comment
-- **Endpoint:** `DELETE /api/blog-posts/[id]/comments/[commentId]/delete`
+- **Endpoint:** `DELETE /api/blogPosts/[id]/comments/[commentId]/delete`
 - **Description:** Deletes a specific comment. Only the author of the comment is authorized to delete it.
 - **URL Parameters:**
   - `commentId` _(number)_: The ID of the comment to be deleted.
@@ -1132,7 +1132,7 @@ POST /api/code-templates/run
   - Returns a success message upon successful deletion of the comment.
 - **Example Request:**
   ```plaintext
-  DELETE /api/comments/1/delete
+  DELETE /api/blogPosts/1/comments/1/delete
   Authorization: Bearer your_jwt_token
   ```
 - **Example Request:**
@@ -1157,7 +1157,7 @@ POST /api/code-templates/run
 - **Authentication:** Logged in (Bearer token required)
 - **Example Request:**
   ```json
-  POST /api/blog-posts/42/comments/123/report
+  POST /api/blogPosts/42/comments/123/report
   Authorization: Bearer <access_token>
   {
     "explanation": "This comment contains inappropriate content"
@@ -1173,7 +1173,7 @@ POST /api/code-templates/run
   ```
 
 ### Vote on a Comment
-- **Endpoint:** `POST /api/blog-posts/[id]/comments/[commentId]/vote`
+- **Endpoint:** `POST /api/blogPosts/[id]/comments/[commentId]/vote`
 - **Description:** Allows a user to upvote or downvote a specific comment. Each user can only have one active vote (upvote or downvote) per comment.
 - **Request Body:**
   - `voteType` _(string)_: Type of vote to cast. Must be either "upvote" or "downvote".
@@ -1185,7 +1185,7 @@ POST /api/code-templates/run
 - **Authentication:** Logged in (Bearer token required)
 - **Example Request:**
   ```json
-  POST /api/comments/123/vote
+  POST /api/blogPosts/1/comments/123/vote
   Authorization: Bearer <access_token>
   {
     "voteType": "upvote"
@@ -1292,7 +1292,7 @@ POST /api/code-templates/run
 - **Authentication:** Admin access required
 - **Example Request:**
   ```json
-  PUT /api/admin/comment/123/hide
+  PUT /api/admin/reports/comments/123/hide
   Authorization: Bearer <admin_access_token>
   ```
 - **Example Response:**
@@ -1303,4 +1303,3 @@ POST /api/code-templates/run
   ```
 
 ---
-
