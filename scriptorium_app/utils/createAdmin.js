@@ -12,7 +12,7 @@ const createAdminUser = async () => {
   const firstName = "Admin";
   const lastName = "User";
   const email = "admin@example.com";
-  const phoneNumber = "+1234567890";
+  const phoneNumber = "1234567890";
   const password = await hashPassword("securepassword123");
 
   try {
