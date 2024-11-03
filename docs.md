@@ -1,4 +1,4 @@
-# API Documentation
+# Documentation
 
 ## Setup and Running the Server
 
@@ -231,3 +231,141 @@ POST /api/code-templates/run
 
 ---
 
+
+## Models
+
+### **Account**
+Represents a user account in the system.
+
+- **Fields**:
+  - `id`: Unique identifier (Primary Key).
+  - `firstName` and `lastName`: User's full name.
+  - `email`: Unique email address for the user.
+  - `avatar`: Optional URL to the user's profile picture.
+  - `phoneNumber`: User's contact number.
+  - `passwordHash`: Encrypted password for secure login.
+  - `isAdministrator`: Boolean to mark admin privileges (default is `false`).
+- **Relations**:
+  - `codeTemplates`: One-to-many relationship with **CodeTemplate** (authored templates).
+  - `blogPosts`: One-to-many relationship with **BlogPost** (authored posts).
+  - `comments`: One-to-many relationship with **Comment** (user's comments).
+  - `postVotes` & `commentVotes`: Tracks votes cast by the user on posts and comments.
+
+### **CodeTemplate**
+Represents a reusable code snippet shared by users.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `codeSnippet`: Optional code string.
+  - `title`: Title of the code template.
+  - `explanation`: Description or explanation of the code template.
+  - `language`: Programming language of the code snippet.
+- **Relations**:
+  - `tags`: Many-to-many relationship with **Tag**.
+  - `forkedFrom` & `forks`: Self-referencing to track forks and originals.
+  - `author`: Relation to **Account** representing the author.
+  - `blogPosts`: Templates linked to blog posts.
+
+### **CodeExecution**
+Records the output and errors of executed code snippets.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `codeString`: Code executed.
+  - `errorString` & `outputString`: Error and output messages.
+  - `runTime`: Duration of execution.
+
+### **BlogPost**
+Represents blog content posted by users.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `title`: Blog post title.
+  - `description`: Blog post body.
+  - `upvotes`, `downvotes`: Count of upvotes and downvotes.
+  - `numReports`: Number of reports made against the post.
+  - `canEdit` & `isVisible`: Control editability and visibility.
+  - `createdAt` & `updatedAt`: Timestamps for tracking.
+- **Relations**:
+  - `tags`: Many-to-many relationship with **Tag**.
+  - `codeTemplates`: Many-to-many relationship with **CodeTemplate**.
+  - `comments`: One-to-many relationship with **Comment**.
+  - `votes`: Many-to-one with **BlogPostVote** for tracking votes.
+  - `reports`: One-to-many with **PostReport** for tracking reports.
+  - `author`: Relation to **Account**.
+
+### **BlogPostVote**
+Tracks votes on blog posts, ensuring each user can only vote once per post.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `voteType`: Type of vote (e.g., upvote/downvote).
+- **Relations**:
+  - `blogPost`: Reference to the voted **BlogPost**.
+  - `account`: Reference to the voting **Account**.
+
+- **Unique Constraint**:
+  - Prevents duplicate votes by the same user on the same post.
+
+### **Comment**
+Represents user comments on blog posts and allows for nested replies.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `content`: Comment text.
+  - `upvotes`, `downvotes`: Count of upvotes and downvotes.
+  - `numReports`: Number of reports against the comment.
+  - `parentCommentId`: Reference for nested replies.
+  - `canEdit` & `isVisible`: Control editability and visibility.
+  - `createdAt` & `updatedAt`: Timestamps for tracking.
+- **Relations**:
+  - `author`: Relation to **Account** (comment author).
+  - `blogPost`: Reference to **BlogPost** on which the comment is made.
+  - `replies`: Self-referencing relationship for nested comments.
+  - `votes`: One-to-many with **CommentVote**.
+  - `reports`: One-to-many with **CommentReport**.
+
+### **CommentVote**
+Tracks votes on comments, with a unique constraint to prevent duplicate votes by the same user on the same comment.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `voteType`: Type of vote.
+- **Relations**:
+  - `comment`: Reference to the voted **Comment**.
+  - `account`: Reference to the voting **Account**.
+
+- **Unique Constraint**:
+  - Ensures each user can only vote once per comment.
+
+### **PostReport**
+Logs reports on blog posts, including explanations for reporting.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `explanation`: Reason for reporting.
+- **Relations**:
+  - `blogPost`: Reference to **BlogPost**.
+  - `reporterId`: ID of the reporting user.
+
+### **CommentReport**
+Tracks reports on comments, with an explanation for each report.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `explanation`: Reason for reporting.
+- **Relations**:
+  - `comment`: Reference to **Comment**.
+  - `reporterId`: ID of the reporting user.
+
+### **Tag**
+Represents tags used for categorizing blog posts and code templates.
+
+- **Fields**:
+  - `id`: Unique identifier.
+  - `name`: Tag name, must be unique.
+- **Relations**:
+  - `codeTemplates`: Many-to-many relationship with **CodeTemplate**.
+  - `blogPosts`: Many-to-many relationship with **BlogPost**.
+
+---
