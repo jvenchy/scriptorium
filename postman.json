@@ -962,7 +962,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"explanation\": \"This comment contains inappropriate content\"\n}",
+					"raw": "{\n    \"voteType\": \"upvote\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -970,7 +970,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{url_base}}/api/blogPosts/1/comments/1/report",
+					"raw": "http://{{url_base}}/api/blogPosts/1/comments/1/vote",
 					"protocol": "http",
 					"host": [
 						"{{url_base}}"
@@ -981,7 +981,7 @@
 						"1",
 						"comments",
 						"1",
-						"report"
+						"vote"
 					]
 				}
 			},
@@ -1062,6 +1062,11 @@
 						"key": "Content-Type",
 						"value": "application/json",
 						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin-access}}",
+						"type": "text"
 					}
 				],
 				"url": {
@@ -1091,21 +1096,24 @@
 						"key": "Content-Type",
 						"value": "application/json",
 						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin-access}}",
+						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://{{url_base}}/api/blogPosts/1/comments/1/replies",
+					"raw": "http://{{url_base}}/api/admin/reports/comments",
 					"protocol": "http",
 					"host": [
 						"{{url_base}}"
 					],
 					"path": [
 						"api",
-						"blogPosts",
-						"1",
-						"comments",
-						"1",
-						"replies"
+						"admin",
+						"reports",
+						"comments"
 					]
 				}
 			},
@@ -1119,6 +1127,11 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin-access}}",
 						"type": "text"
 					}
 				],
