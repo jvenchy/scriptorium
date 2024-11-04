@@ -33,6 +33,7 @@ export default async function handler(req, res) {
     const account = await prisma.account.findUnique({
       where: { email },
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,
