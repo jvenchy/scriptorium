@@ -1,196 +1,71 @@
+import { exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-const { spawn } = require('child_process');
 
-export const SUPPORTED_LANGUAGES = ['java', 'javascript', 'python', 'c', 'cpp'];
+const supportedLanguages = ['python', 'javascript', 'c', 'cpp', 'java', 'ruby', 'php', 'perl', 'bash', 'lua'];
 
-async function runCode(file, language, stdin = '') {
-  switch (language.toLowerCase()) {
-    case 'javascript':
-      return await runJavaScript(file, stdin);
-    case 'python':
-      return await runPython(file, stdin);
-    case 'java':
-      return await runJava(file, stdin);
-    case 'c':
-      return await runC(file, stdin);
-    case 'cpp':
-      return await runCpp(file, stdin);
-    default:
-      return { errorString: `Unsupported language: ${language}`, outputString: '' };
-  }
-}
+const extensions = {
+  python: 'py',
+  javascript: 'js',
+  c: 'c',
+  cpp: 'cpp',
+  java: 'java',
+  ruby: 'rb',
+  php: 'php',
+  perl: 'pl',
+  bash: 'sh',
+  lua: 'lua',
+};
 
-async function runJavaScript(file, stdin) {
-  return await executeCommand('node', [file], stdin);
-}
 
-async function runPython(file, stdin) {
-  return await executeCommand('python3', [file], stdin);
-}
-
-async function runJava(file, stdin) {
-  const compileResult = await compileJava(file);
-  if (compileResult.errorString) return compileResult;
-  return await executeCommand('java', ['-cp', path.dirname(file), 'Main'], stdin);
-}
-
-async function runC(file, stdin) {
-  const executable = file.replace('.c', '');
-  const compileResult = await compileC(file, executable);
-  console.log('compile:', compileResult, executable);
-  if (compileResult.errorString) return compileResult;
-  return await executeCommand(`${executable}`, [], stdin);
-}
-
-async function runCpp(file, stdin) {
-  const executable = file.replace('.cpp', '');
-  const compileResult = await compileCpp(file, executable);
-  if (compileResult.errorString) return compileResult;
-  return await executeCommand(`${executable}`, [], stdin);
-}
-
-function compileJava(file) {
-  return new Promise((resolve) => {
-    const compile = spawn('javac', [file]);
-    let error = '';
-
-    // Capture compilation errors
-    compile.stderr.on('data', (data) => {
-      error += data.toString();
-    });
-
-    compile.on('close', (code) => {
-      if (code === 0) resolve({ errorString: '', outputString: '' });
-      else resolve({ errorString: error, outputString: '' });
-    });
-  });
-}
-
-function compileC(file, output) {
-  return new Promise((resolve) => {
-    const compile = spawn('gcc', [file, '-o', output]);
-    let error = '';
-
-    // Capture compilation errors
-    compile.stderr.on('data', (data) => {
-      error += data.toString();
-    });
-
-    compile.on('close', (code) => {
-      if (code === 0) resolve({ errorString: '', outputString: '' });
-      else resolve({ errorString: error, outputString: '' });
-    });
-  });
-}
-
-function compileCpp(file, output) {
-  return new Promise((resolve) => {
-    const compile = spawn('g++', [file, '-o', output]);
-    let error = '';
-
-    // Capture compilation errors
-    compile.stderr.on('data', (data) => {
-      error += data.toString();
-    });
-
-    compile.on('close', (code) => {
-      if (code === 0) resolve({ errorString: '', outputString: '' });
-      else resolve({ errorString: error, outputString: '' });
-    });
-  });
-}
-
-function executeCommand(command, args, stdin) {
-  return new Promise((resolve, reject) => {
-    const process = spawn(command, args);
-    let output = '';
-    let error = '';
-
-    // Write to stdin
-    process.stdin.write(stdin);
-    process.stdin.end();
-
-    // Collect stdout and stderr data
-    process.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    process.stderr.on('data', (data) => {
-      error += data.toString();
-    });
-
-    // Resolve on close with output
-    process.on('close', () => {
-      resolve({ outputString: output, errorString: error });
-    });
-
-    // Handle errors
-    process.on('error', (err) => {
-      reject({ errorString: err.message, outputString: '' });
-    });
-  });
-}
-
-// Helper function to get file extension based on language
-function getFileExtension(language) {
-  switch (language.toLowerCase()) {
-    case 'javascript':
-      return '.js';
-    case 'python':
-      return '.py';
-    case 'java':
-      return '.java';
-    case 'c':
-      return '.c';
-    case 'cpp':
-      return '.cpp';
-    default:
-      return null;
-  }
-}
-
-// API handler
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ errorString: 'Method not allowed', outputString: '' });
+    return res.status(405).json({ errorString: 'Method Not Allowed', outputString: '' });
   }
 
-  const { codeSnippet, language, stdin = '' } = req.body;
+  const { codeSnippet, language, stdin } = req.body;
 
-  if (!codeSnippet || !language) {
-    return res.status(400).json({ errorString: 'Missing codeSnippet or language in request body.', outputString: '' });
+  if (!supportedLanguages.includes(language)) {
+    return res.status(400).json({
+      errorString: `Unsupported language. Supported languages are: ${supportedLanguages.join(', ')}`,
+      outputString: '',
+    });
   }
 
   try {
-    // Get file extension based on language
-    const fileExtension = getFileExtension(language);
-    if (!fileExtension) {
-      return res.status(400).json({ errorString: `Unsupported language: ${language}`, outputString: '' });
-    }
+    const dockerDir = path.join(process.cwd(), 'docker');
+    const extension = extensions[language];
 
-    // Define a temporary directory and file path
-    const tempDir = path.join(process.cwd(), 'tmp');
-    const tempFile = path.join(tempDir, language.toLowerCase() === 'java' ? 'Main.java' : `tempfile${fileExtension}`);
+    const codeFilePath = path.join(dockerDir, `code.${extension}`);
+    const dockerfilePath = path.join(dockerDir, `Dockerfile.${language}`);
 
-    console.log(tempFile);
+    // Write the code snippet to a temporary file
+    fs.writeFileSync(codeFilePath, codeSnippet, 'utf8');
+    console.log(codeFilePath);
 
-    // Ensure the tmp directory exists
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir);
-    }
+    // Build the Docker image
+    const buildCommand = `docker build -t ${language}-runner -f ${dockerfilePath} ${dockerDir}`;
 
-    // Write the code snippet to the temporary file
-    fs.writeFileSync(tempFile, codeSnippet);
+    exec(buildCommand, (buildErr, stdout, stderr) => {
+      if (buildErr) {
+        fs.unlinkSync(codeFilePath);
+        return res.status(200).json({ errorString: stderr, outputString: '' });
+      }
 
-    // Run the code with a timeout of 5 seconds
-    const { outputString, errorString } = await runCode(tempFile, language, stdin);
+      // Run the container, passing standard input via echo
+      const runCommand = `echo "${stdin.replace(/"/g, '\\"')}" | docker run --rm -i -v ${codeFilePath}:/app/code.${extension} ${language}-runner`;
 
-    // Clean up by removing the temp file
-    fs.unlinkSync(tempFile);
+      exec(runCommand, (runErr, output, errorOutput) => {
+        fs.unlinkSync(codeFilePath);
 
-    return res.status(200).json({ errorString, outputString });
+        if (runErr) {
+          return res.status(200).json({ errorString: errorOutput, outputString: '' });
+        }
+
+        return res.status(200).json({ errorString: '', outputString: output });
+      });
+    });
   } catch (error) {
-    console.error('Execution error:', error);
-    return res.status(500).json({ errorString: `Error executing the code: ${error.message}`, outputString: '' });
+    return res.status(200).json({ errorString: error.message, outputString: '' });
   }
 }
