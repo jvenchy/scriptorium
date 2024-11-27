@@ -55,6 +55,32 @@ const DEFAULT_TEMPLATE = {
   forks: []
 }
 
+const SUPPORTED_LANGUAGES = {
+  'Python': 'python',
+  'JavaScript': 'javascript',
+  'C': 'c',
+  'C++': 'cpp',
+  'Java': 'java',
+  'Ruby': 'ruby',
+  'PHP': 'php',
+  'Perl': 'perl',
+  'Bash': 'bash',
+  'Lua': 'lua'
+} as const;
+
+const HELLO_WORLD_PROGRAMS = {
+  'Python': 'print("Hello, World!")',
+  'JavaScript': 'console.log("Hello, World!");',
+  'C': '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
+  'C++': '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
+  'Java': 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
+  'Ruby': 'puts "Hello, World!"',
+  'PHP': '<?php\necho "Hello, World!";\n?>',
+  'Perl': 'print "Hello, World!\\n";',
+  'Bash': 'echo "Hello, World!"',
+  'Lua': 'print("Hello, World!")'
+} as const;
+
 export default function EditorPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -69,6 +95,7 @@ export default function EditorPage() {
   const [title, setTitle] = useState('')
   const [explanation, setExplanation] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const [isRunning, setIsRunning] = useState(false)
 
   const isAuthor = user?.id === template?.authorId
 
@@ -99,16 +126,29 @@ export default function EditorPage() {
   }, [templateId])
 
   const runCode = async () => {
-    const response = await fetch('/api/code-templates/run', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      },
-      body: JSON.stringify({ codeSnippet: code, language, stdin }),
-    })
-    const result = await response.json()
-    setOutput(result)
+    setIsRunning(true)
+    try {
+      const apiLanguage = SUPPORTED_LANGUAGES[language as keyof typeof SUPPORTED_LANGUAGES] || language.toLowerCase();
+      
+      const response = await fetch('/api/code-templates/run', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({ 
+          codeSnippet: code, 
+          language: apiLanguage, 
+          stdin 
+        }),
+      })
+      const result = await response.json()
+      setOutput(result)
+    } catch (error) {
+      setOutput({ errorString: 'Failed to run code', outputString: '' })
+    } finally {
+      setIsRunning(false)
+    }
   }
 
   const saveTemplate = async () => {
@@ -212,6 +252,14 @@ export default function EditorPage() {
     router.push('/editor')
   }
 
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    // Only change the code if it's a new template or the default template
+    if (!templateId || template?.id === 0) {
+      setCode(HELLO_WORLD_PROGRAMS[newLanguage as keyof typeof HELLO_WORLD_PROGRAMS]);
+    }
+  };
+
   if (!template) return <div>Loading...</div>
 
   return (
@@ -241,9 +289,9 @@ export default function EditorPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <LanguageSelector language={language} setLanguage={setLanguage} />
+            <LanguageSelector language={language} setLanguage={handleLanguageChange} />
             <div className="flex flex-wrap gap-4">
-              <RunButton onClick={runCode} />
+              <RunButton onClick={runCode} isRunning={isRunning} />
               {isAuthor && <SaveButton onClick={saveTemplate} />}
               {templateId && (
                 <>

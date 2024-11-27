@@ -4,7 +4,7 @@ interface LanguageSelectorProps {
 }
 
 export default function LanguageSelector({ language, setLanguage }: LanguageSelectorProps) {
-  const languages = ['JavaScript', 'Python', 'Java', 'C++', 'Ruby']
+  const languages = ['Python', 'JavaScript', 'C', 'C++', 'Java', 'Ruby', 'PHP', 'Perl', 'Bash', 'Lua']
 
   return (
     <div>

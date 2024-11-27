@@ -1,14 +1,20 @@
 interface RunButtonProps {
-    onClick: () => void
+    onClick: () => Promise<void>;
+    isRunning: boolean;
   }
   
-  export default function RunButton({ onClick }: RunButtonProps) {
+  export default function RunButton({ onClick, isRunning }: RunButtonProps) {
     return (
       <button
-        className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
         onClick={onClick}
+        disabled={isRunning}
+        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+          isRunning 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-green-500 hover:bg-green-600 text-white'
+        }`}
       >
-        Run Code
+        {isRunning ? 'Running...' : 'Run Code'}
       </button>
     )
   }

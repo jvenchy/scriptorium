@@ -53,12 +53,26 @@ export default async function handler(req, res) {
       }
 
       // Run the container, passing standard input via echo
-      const runCommand = `echo "${stdin.replace(/"/g, '\\"')}" | docker run --rm -i -v ${codeFilePath}:/app/code.${extension} ${language}-runner`;
+      const runCommand = `echo "${stdin.replace(/"/g, '\\"')}" | docker run --rm -i --memory="64m" --memory-swap="64m" -v ${codeFilePath}:/app/code.${extension} ${language}-runner`;
 
-      exec(runCommand, (runErr, output, errorOutput) => {
+      exec(runCommand, { timeout: 2000 }, (runErr, output, errorOutput) => {
         fs.unlinkSync(codeFilePath);
 
         if (runErr) {
+          // Check if the error is due to timeout
+          if (runErr.killed && runErr.signal === 'SIGTERM') {
+            return res.status(200).json({ 
+              errorString: 'Time Limit Exceeded: Program execution took longer than 2 seconds', 
+              outputString: '' 
+            });
+          }
+          // Check if error output indicates memory limit exceeded
+          if (!errorOutput) {
+            return res.status(200).json({ 
+              errorString: 'Memory Limit Exceeded: Program used more than 64MB of memory', 
+              outputString: ''
+            });
+          }
           return res.status(200).json({ errorString: errorOutput, outputString: '' });
         }
 
