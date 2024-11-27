@@ -33,6 +33,7 @@ export default async function handler(req, res) {
     const account = await prisma.account.findUnique({
       where: { email },
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,
@@ -49,6 +50,7 @@ export default async function handler(req, res) {
 
     // Respond with the account details
     return res.status(200).json({
+      id: account.id,
       firstName: account.firstName,
       lastName: account.lastName,
       email: account.email,

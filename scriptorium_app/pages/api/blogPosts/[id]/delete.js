@@ -66,28 +66,46 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "You don't have permission to delete this post" });
     }
 
-    // Delete related records first (if not handled by cascading deletes in schema)
-    await prisma.$transaction([
-      // Remove all tag relationships
-      prisma.blogPost.update({
+    await prisma.$transaction(async (tx) => {
+      // Delete all comments for this post
+      await tx.comment.deleteMany({
+        where: {
+          blogPostId: parseInt(id)
+        }
+      });
+
+      // Delete all blog post votes
+      await tx.blogPostVote.deleteMany({
+        where: {
+          blogPostId: parseInt(id)
+        }
+      });
+
+      // Delete all blog post reports
+      await tx.postReport.deleteMany({
+        where: {
+          blogPostId: parseInt(id)
+        }
+      });
+
+      // Remove tag relationships
+      await tx.blogPost.update({
         where: { id: parseInt(id) },
         data: {
           tags: {
             set: []
-          },
-          codeTemplates: {
-            set: []
-          },
+          }
         }
-      }),
-      // Delete the blog post
-      prisma.blogPost.delete({
+      });
+
+      // Finally delete the blog post
+      await tx.blogPost.delete({
         where: { id: parseInt(id) }
-      })
-    ]);
+      });
+    });
 
     return res.status(200).json({
-      message: "Blog post deleted successfully",
+      message: "Blog post and related records deleted successfully",
       deletedPostId: id
     });
 
@@ -101,3 +119,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+

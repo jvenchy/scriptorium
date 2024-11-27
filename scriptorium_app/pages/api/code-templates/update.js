@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import { verifyToken } from '@/utils/auth';
+import { SUPPORTED_LANGUAGES } from './run.js';
 
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET;
 
@@ -30,6 +31,11 @@ export default async function handler(req, res) {
   // Ensure required fields are present
   if (!codeTemplateId || !title || !explanation || !language) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Check if the language is supported
+  if (!SUPPORTED_LANGUAGES.includes(language.toLowerCase())) {
+    return res.status(400).json({ error: `Unsupported language. Supported languages are: ${SUPPORTED_LANGUAGES.join(', ')}` });
   }
 
   try {
@@ -69,11 +75,19 @@ export default async function handler(req, res) {
           })),
         },
       },
-      select: { id: true },
+      select: { 
+        id: true,
+        createdAt: true,
+        updatedAt: true 
+      },
     });
 
-    // Respond with the updated code template ID
-    return res.status(200).json({ codeTemplateId: updatedCodeTemplate.id });
+    // Respond with the updated code template ID and timestamps
+    return res.status(200).json({
+      codeTemplateId: updatedCodeTemplate.id,
+      createdAt: updatedCodeTemplate.createdAt,
+      updatedAt: updatedCodeTemplate.updatedAt
+    });
 
   } catch (error) {
     console.error(error);

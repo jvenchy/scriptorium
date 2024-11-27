@@ -1,4 +1,5 @@
-import prisma from '../../../lib/prisma';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -7,7 +8,18 @@ export default async function handler(req, res) {
     try {
       const template = await prisma.codeTemplate.findUnique({
         where: { id: Number(id) },
-        include: { tags: true, author: true, forks: true },
+        include: { 
+          tags: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true
+            }
+          },
+        },
       });
       if (!template) {
         res.status(404).json({ error: 'CodeTemplate not found' });

@@ -1,45 +1,134 @@
 import fs from 'fs';
 import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+const { spawn } = require('child_process');
 
-const execAsync = promisify(exec);
+export const SUPPORTED_LANGUAGES = ['java', 'javascript', 'python', 'c', 'cpp'];
 
-// Function to run the code based on the language with a timeout
 async function runCode(file, language, stdin = '') {
-  let command;
   switch (language.toLowerCase()) {
     case 'javascript':
-      command = `node ${file}`;
-      break;
+      return await runJavaScript(file, stdin);
     case 'python':
-      command = `python3 ${file}`;
-      break;
+      return await runPython(file, stdin);
     case 'java':
-      command = `javac ${file} && java -cp ${path.dirname(file)} Main`;
-      break;
+      return await runJava(file, stdin);
     case 'c':
-      command = `gcc ${file} -o ${file.replace('.c', '')} && ${file.replace('.c', '')}`;
-      break;
+      return await runC(file, stdin);
     case 'cpp':
-      command = `g++ ${file} -o ${file.replace('.cpp', '')} && ${file.replace('.cpp', '')}`;
-      break;
+      return await runCpp(file, stdin);
     default:
       return { errorString: `Unsupported language: ${language}`, outputString: '' };
   }
+}
 
-  try {
-    const { stdout, stderr } = await execAsync(command, {
-      input: stdin,
-      timeout: 5000, // Set timeout to 5 seconds (5000 ms)
+async function runJavaScript(file, stdin) {
+  return await executeCommand('node', [file], stdin);
+}
+
+async function runPython(file, stdin) {
+  return await executeCommand('python3', [file], stdin);
+}
+
+async function runJava(file, stdin) {
+  const compileResult = await compileJava(file);
+  if (compileResult.errorString) return compileResult;
+  return await executeCommand('java', ['-cp', path.dirname(file), 'Main'], stdin);
+}
+
+async function runC(file, stdin) {
+  const executable = file.replace('.c', '');
+  const compileResult = await compileC(file, executable);
+  console.log('compile:', compileResult, executable);
+  if (compileResult.errorString) return compileResult;
+  return await executeCommand(`${executable}`, [], stdin);
+}
+
+async function runCpp(file, stdin) {
+  const executable = file.replace('.cpp', '');
+  const compileResult = await compileCpp(file, executable);
+  if (compileResult.errorString) return compileResult;
+  return await executeCommand(`${executable}`, [], stdin);
+}
+
+function compileJava(file) {
+  return new Promise((resolve) => {
+    const compile = spawn('javac', [file]);
+    let error = '';
+
+    // Capture compilation errors
+    compile.stderr.on('data', (data) => {
+      error += data.toString();
     });
-    return { outputString: stdout, errorString: stderr };
-  } catch (error) {
-    if (error.killed) {
-      return { errorString: "Execution timed out after 5 seconds", outputString: "" };
-    }
-    return { errorString: error.message, outputString: "" };
-  }
+
+    compile.on('close', (code) => {
+      if (code === 0) resolve({ errorString: '', outputString: '' });
+      else resolve({ errorString: error, outputString: '' });
+    });
+  });
+}
+
+function compileC(file, output) {
+  return new Promise((resolve) => {
+    const compile = spawn('gcc', [file, '-o', output]);
+    let error = '';
+
+    // Capture compilation errors
+    compile.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    compile.on('close', (code) => {
+      if (code === 0) resolve({ errorString: '', outputString: '' });
+      else resolve({ errorString: error, outputString: '' });
+    });
+  });
+}
+
+function compileCpp(file, output) {
+  return new Promise((resolve) => {
+    const compile = spawn('g++', [file, '-o', output]);
+    let error = '';
+
+    // Capture compilation errors
+    compile.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    compile.on('close', (code) => {
+      if (code === 0) resolve({ errorString: '', outputString: '' });
+      else resolve({ errorString: error, outputString: '' });
+    });
+  });
+}
+
+function executeCommand(command, args, stdin) {
+  return new Promise((resolve, reject) => {
+    const process = spawn(command, args);
+    let output = '';
+    let error = '';
+
+    // Write to stdin
+    process.stdin.write(stdin);
+    process.stdin.end();
+
+    // Collect stdout and stderr data
+    process.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    process.stderr.on('data', (data) => {
+      error += data.toString();
+    });
+
+    // Resolve on close with output
+    process.on('close', () => {
+      resolve({ outputString: output, errorString: error });
+    });
+
+    // Handle errors
+    process.on('error', (err) => {
+      reject({ errorString: err.message, outputString: '' });
+    });
+  });
 }
 
 // Helper function to get file extension based on language
@@ -82,6 +171,8 @@ export default async function handler(req, res) {
     // Define a temporary directory and file path
     const tempDir = path.join(process.cwd(), 'tmp');
     const tempFile = path.join(tempDir, language.toLowerCase() === 'java' ? 'Main.java' : `tempfile${fileExtension}`);
+
+    console.log(tempFile);
 
     // Ensure the tmp directory exists
     if (!fs.existsSync(tempDir)) {
