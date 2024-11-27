@@ -27,7 +27,7 @@ export default function AuthorInfo({ author, forkedFromId }: AuthorInfoProps) {
       {forkedFromId && (
         <p className="mt-2">
           Forked from:{' '}
-          <Link href={`/editor/${forkedFromId}`} className="text-blue-500 hover:underline">
+          <Link href={`/editor?template=${forkedFromId}`} className="text-blue-500 hover:underline">
             Template #{forkedFromId}
           </Link>
         </p>
