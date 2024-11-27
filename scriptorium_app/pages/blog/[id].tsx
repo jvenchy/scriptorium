@@ -6,13 +6,18 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 import EditableField from '@/components/EditableField'
-import AuthorInfo from '@/components/AuthorInfo'
+// import AuthorInfo from '@/components/AuthorInfo'
 import TagEditor from '@/components/TagEditor'
 import SaveButton from '@/components/SaveButton'
 import CommentForm from '@/components/CommentForm'
 import ReportModal from '@/components/ReportModal'
 import { useAuth } from '@/contexts/AuthContext'
-import { Avatar } from '@mui/material'
+import { Avatar, Typography, Button } from '@mui/material'
+import { Navbar } from '@/components/NavBar'
+import { ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon } from '@mui/icons-material';
+import ProfileComponent from '@/components/ProfileComponent';
+
+const defaultAvatar = '/broken-image.jpg'
 
 interface Author {
   id: number
@@ -297,22 +302,28 @@ export default function BlogPostPage() {
         ref={el => commentRefs.current[comment.id] = el}
       >
         <div className="flex items-center mb-2">
-          <Image
-            src={getImageSrc(comment.author.avatar)}
+          <Avatar
+            src={comment.author.avatar || defaultAvatar}
             alt={`${comment.author.firstName} ${comment.author.lastName}`}
-            width={32}
-            height={32}
-            className="rounded-full mr-2"
+            sx={{ width: 32, height: 32, mr: 2 }}
           />
           <div>
-            <p className="font-semibold">{`${comment.author.firstName} ${comment.author.lastName}`}</p>
-            <p className="text-sm text-gray-500">
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 'bold', mr: 2 }}
+            >
+              {`${comment.author.firstName} ${comment.author.lastName}`}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+            >
               {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-            </p>
+            </Typography>
           </div>
         </div>
         {comment.parentCommentId && (
-          <p className="text-sm text-gray-600 mb-2">
+          <Typography variant="caption" color="text.secondary" className="mb-2">
             replying to{' '}
             <button 
               onClick={() => scrollToComment(comment.parentCommentId!)}
@@ -320,7 +331,7 @@ export default function BlogPostPage() {
             >
               {comments.find(c => c.id === comment.parentCommentId)?.author.firstName || 'author'}
             </button>
-          </p>
+          </Typography>
         )}
         {editingCommentId === comment.id ? (
           <>
@@ -337,23 +348,39 @@ export default function BlogPostPage() {
             </button>
           </>
         ) : (
-          <p className="mb-2">{comment.content}</p>
+          <Typography variant="body2" className="mb-2">
+            {comment.content}
+          </Typography>
         )}
         <div className="flex items-center space-x-4">
-          <button
+          <Button
             onClick={() => voteComment(comment.id, 'upvote')}
-            className="flex items-center space-x-1 text-gray-500 hover:text-blue-500"
+            variant="text"
+            color="primary"
+            sx={{
+              textTransform: 'none',
+              '&:hover': {
+                color: 'primary.dark',
+              },
+            }}
+            startIcon={<ThumbUpIcon />}
           >
-            <span>👍</span>
-            <span>{comment.upvotes}</span>
-          </button>
-          <button
+            {comment.upvotes}
+          </Button>
+          <Button
             onClick={() => voteComment(comment.id, 'downvote')}
-            className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
+            variant="text"
+            color="error"
+            sx={{
+              textTransform: 'none',
+              '&:hover': {
+                color: 'error.dark',
+              },
+            }}
+            startIcon={<ThumbDownIcon />}
           >
-            <span>👎</span>
-            <span>{comment.downvotes}</span>
-          </button>
+            {comment.downvotes}
+          </Button>
           {replyingTo === comment.id ? (
             <CommentForm
               onSubmit={(content) => createComment(content, comment.id)}
@@ -489,138 +516,193 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      {user && (
-        <div className="mb-6 flex items-center justify-end space-x-4">
-          <div className="flex items-center space-x-2">
-            <Image
-              src={user.avatar || '/placeholder.svg'}
-              alt={`${user.firstName} ${user.lastName}`}
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
-            <div>
-              <p className="font-semibold">{`${user.firstName} ${user.lastName}`}</p>
-              <p className="text-sm text-gray-500">{user.email}</p>
-            </div>
+    <div className="flex min-h-screen bg-white text-black">
+      <Navbar
+        isAuthenticated={!!user}
+        onAuthClick={() => {}}
+        onLogoutClick={() => {
+          // Add your logout logic here
+        }}
+        user={user}
+        onCreatePostClick={() => router.push('/createPost')}
+      />
+      <div className="container mx-auto p-4 ml-60">
+        {user && (
+          <div className="mb-6 flex items-center justify-end space-x-4">
+            <ProfileComponent />
           </div>
-        </div>
-      )}
+        )}
 
-      <article className="max-w-3xl mx-auto">
-        <header className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {isEditMode ? (
-              <EditableField
-                value={title}
-                onChange={setTitle}
-                className="text-4xl font-bold"
-              />
-            ) : (
-              <h1 className="text-4xl font-bold">{blogPost.title}</h1>
-            )}
-            <div className="space-x-2">
-              {user?.id === blogPost.author.id && (
-                <>
-                  <button
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    {isEditMode ? 'Cancel Edit' : 'Edit Post'}
-                  </button>
-                  <button
-                    onClick={deleteBlogPost}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Delete Post
-                  </button>
-                </>
+        <article className="max-w-3xl mx-auto">
+          <header className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              {isEditMode ? (
+                <EditableField
+                  value={title}
+                  onChange={setTitle}
+                  className="text-4xl font-bold"
+                />
+              ) : (
+                <h1 className="text-4xl font-bold">{blogPost.title}</h1>
               )}
-              <button
-                onClick={() => {
-                  setReportTarget({ type: 'post', id: blogPost.id })
-                  setIsReportModalOpen(true)
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Report Post
-              </button>
+              <div className="space-x-2">
+                {user?.id === blogPost.author.id && (
+                  <>
+                    <Button
+                      onClick={() => setIsEditMode(!isEditMode)}
+                      variant="contained"
+                      color="primary"
+                      sx={{
+                        textTransform: 'none',
+                        boxShadow: 3,
+                        '&:hover': {
+                          backgroundColor: 'primary.dark',
+                        },
+                      }}
+                    >
+                      {isEditMode ? 'Cancel Edit' : 'Edit Post'}
+                    </Button>
+                    <Button
+                      onClick={deleteBlogPost}
+                      variant="contained"
+                      color="error"
+                      sx={{
+                        textTransform: 'none',
+                        boxShadow: 3,
+                        '&:hover': {
+                          backgroundColor: 'error.dark',
+                        },
+                      }}
+                    >
+                      Delete Post
+                    </Button>
+                  </>
+                )}
+                <Button
+                  onClick={() => {
+                    setReportTarget({ type: 'post', id: blogPost.id });
+                    setIsReportModalOpen(true);
+                  }}
+                  variant="outlined"
+                  color="secondary"
+                  sx={{
+                    textTransform: 'none',
+                    boxShadow: 3,
+                    '&:hover': {
+                      backgroundColor: 'secondary.light',
+                    },
+                  }}
+                >
+                  Report Post
+                </Button>
+              </div>
             </div>
-          </div>
-          {isEditMode ? (
-            <div className="mb-8">
-              <EditableField
-                value={description}
-                onChange={setDescription}
-                multiline
-                className="prose max-w-none"
+
+            <div className="flex items-center space-x-2 mb-4">
+              <Avatar
+                src={blogPost.author.avatar || defaultAvatar}
+                sx={{ width: 24, height: 24 }}
               />
+              <Typography
+                variant="body2"
+                color="text.primary"
+                sx={{
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                // {blogPost.author.firstName} {blogPost.author.lastName}
+              </Typography>
             </div>
-          ) : (
-            <>
-              <div className="prose max-w-none mb-8">
-                {blogPost.description}
+
+            {isEditMode ? (
+              <div className="mb-8">
+                <EditableField
+                  value={description}
+                  onChange={setDescription}
+                  multiline
+                  className="prose max-w-none"
+                />
               </div>
-              <div className="flex items-center space-x-4 mb-8 justify-center">
-                <button
-                  onClick={() => voteBlogPost('upvote')}
-                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-500"
-                >
-                  <span>👍</span>
-                  <span>{blogPost.upvotes}</span>
-                </button>
-                <button
-                  onClick={() => voteBlogPost('downvote')}
-                  className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
-                >
-                  <span>👎</span>
-                  <span>{blogPost.downvotes}</span>
-                </button>
-              </div>
-            </>
+            ) : (
+              <>
+                <div className="prose max-w-none mb-8">
+                  {blogPost.description}
+                </div>
+                <div className="flex items-center space-x-4 mb-8 justify-center">
+                  <Button
+                    onClick={() => voteBlogPost('upvote')}
+                    variant="text"
+                    color="primary"
+                    sx={{
+                      textTransform: 'none',
+                      '&:hover': {
+                        color: 'primary.dark',
+                      },
+                    }}
+                    startIcon={<ThumbUpIcon />}
+                  >
+                    {blogPost.upvotes}
+                  </Button>
+                  <Button
+                    onClick={() => voteBlogPost('downvote')}
+                    variant="text"
+                    color="error"
+                    sx={{
+                      textTransform: 'none',
+                      '&:hover': {
+                        color: 'error.dark',
+                      },
+                    }}
+                    startIcon={<ThumbDownIcon />}
+                  >
+                    {blogPost.downvotes}
+                  </Button>
+                </div>
+              </>
+            )}
+          </header>
+
+          {blogPost.codeTemplates.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold mb-4">Attached Code Template</h2>
+              <ul className="space-y-4">
+                {blogPost.codeTemplates.map((template) => (
+                  <li key={template.id} className="border rounded p-4">
+                    <Link href={`/editor?template=${template.id}`} className="text-blue-500 hover:underline">
+                      <h3 className="text-xl font-semibold mb-2">{template.title}</h3>
+                    </Link>
+                    <p className="text-gray-600 mb-2">{template.explanation}</p>
+                    <p className="text-sm text-gray-500">Language: {template.language}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-          <AuthorInfo author={blogPost.author} forkedFromId={null} />
-        </header>
-       
-        {blogPost.codeTemplates.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Related Code Templates</h2>
-            <ul className="space-y-4">
-              {blogPost.codeTemplates.map((template) => (
-                <li key={template.id} className="border rounded p-4">
-                  <Link href={`/editor?template=${template.id}`} className="text-blue-500 hover:underline">
-                    <h3 className="text-xl font-semibold mb-2">{template.title}</h3>
-                  </Link>
-                  <p className="text-gray-600 mb-2">{template.explanation}</p>
-                  <p className="text-sm text-gray-500">Language: {template.language}</p>
-                </li>
-              ))}
+          <section>
+            <h2 className="text-2xl font-bold mb-4">Comments</h2>
+            <CommentForm onSubmit={(content) => createComment(content)} />
+            <ul className="space-y-4 mt-4">
+              {renderComments(blogPost.comments)}
             </ul>
           </section>
-        )}
-        <section>
-          <h2 className="text-2xl font-bold mb-4">Comments</h2>
-          <CommentForm onSubmit={(content) => createComment(content)} />
-          <ul className="space-y-4 mt-4">
-            {renderComments(blogPost.comments)}
-          </ul>
-        </section>
-        {isEditMode && (
-          <div className="mt-8">
-            <SaveButton onClick={saveBlogPost} />
-          </div>
-        )}
-      </article>
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => {
-          setIsReportModalOpen(false)
-          setReportTarget(null)
-        }}
-        onSubmit={handleReport}
-        title={reportTarget?.type === 'post' ? 'Report Blog Post' : 'Report Comment'}
-      />
+          {isEditMode && (
+            <div className="mt-8">
+              <SaveButton onClick={saveBlogPost} />
+            </div>
+          )}
+        </article>
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => {
+            setIsReportModalOpen(false)
+            setReportTarget(null)
+          }}
+          onSubmit={handleReport}
+          title={reportTarget?.type === 'post' ? 'Report Blog Post' : 'Report Comment'}
+        />
+      </div>
     </div>
   )
 }

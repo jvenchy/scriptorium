@@ -14,6 +14,8 @@ import ForkButton from '@/components/ForkButton'
 import DeleteButton from '@/components/DeleteButton'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
+import { Navbar } from '@/components/NavBar'
+import ProfileComponent from '@/components/ProfileComponent'
 
 interface CodeTemplate {
   id: number
@@ -48,7 +50,7 @@ const DEFAULT_TEMPLATE = {
     firstName: 'John',
     lastName: 'Doe',
     email: 'john.doe@example.com',
-    avatar: null
+    avatar: '/broken-image.jpg',
   },
   forks: []
 }
@@ -213,76 +215,76 @@ export default function EditorPage() {
   if (!template) return <div>Loading...</div>
 
   return (
-    <div className="container mx-auto p-4">
-      {user && (
-        <div className="mb-6 flex items-center justify-end space-x-4">
-          <div className="flex items-center space-x-2">
-            <Image
-              src={user.avatar || '/placeholder.svg'}
-              alt={`${user.firstName} ${user.lastName}`}
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
+    <div className="flex min-h-screen bg-white text-black">
+      <Navbar
+        isAuthenticated={!!user}
+        onAuthClick={() => {}}
+        onLogoutClick={() => {
+          // Add your logout logic here
+        }}
+        user={user}
+        onCreatePostClick={() => router.push('/createPost')}
+      />
+      <div className="flex-grow container mx-auto p-8 ml-60">
+        {user && (
+          <div className="mb-6 flex items-center justify-end space-x-4">
+            <ProfileComponent />
+          </div>
+        )}
+
+        <EditableField
+          value={title}
+          onChange={setTitle}
+          className="text-3xl font-helvetica font-bold mb-6"
+          isEditing={isAuthor}
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <LanguageSelector language={language} setLanguage={setLanguage} />
+            <CodeEditor code={code} setCode={setCode} language={language} />
             <div>
-              <p className="font-semibold">{`${user.firstName} ${user.lastName}`}</p>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <label htmlFor="stdin" className="block text-sm font-medium text-gray-700 mb-2">
+                Standard Input
+              </label>
+              <textarea
+                id="stdin"
+                className="w-full p-2 border rounded font-mono"
+                rows={3}
+                value={stdin}
+                onChange={(e) => setStdin(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <RunButton onClick={runCode} />
+              {isAuthor && <SaveButton onClick={saveTemplate} />}
+              {templateId && (
+                <>
+                  <ForkButton onClick={forkTemplate} />
+                  {isAuthor && <DeleteButton onClick={deleteTemplate} />}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="space-y-6">
+            <OutputBox output={output} />
+            <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
+            <div>
+              <h2 className="text-2xl font-helvetica font-semibold mb-2">Explanation</h2>
+              <EditableField
+                value={explanation}
+                onChange={setExplanation}
+                multiline
+                className="w-full p-2 border rounded font-mono"
+                isEditing={isAuthor}
+              />
+            </div>
+            <div>
+              <h2 className="text-2xl font-helvetica font-semibold mb-2">Tags</h2>
+              <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
             </div>
           </div>
         </div>
-      )}
-
-      <EditableField
-        value={title}
-        onChange={setTitle}
-        className="text-2xl font-bold mb-4"
-        isEditing={isAuthor}
-      />
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <LanguageSelector language={language} setLanguage={setLanguage} />
-          <CodeEditor code={code} setCode={setCode} language={language} />
-          <div className="mt-4">
-            <label htmlFor="stdin" className="block text-sm font-medium text-gray-700">
-              Standard Input
-            </label>
-            <textarea
-              id="stdin"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              rows={3}
-              value={stdin}
-              onChange={(e) => setStdin(e.target.value)}
-            />
-          </div>
-          <div className="mt-4 flex space-x-4">
-            <RunButton onClick={runCode} />
-            {isAuthor && <SaveButton onClick={saveTemplate} />}
-            {templateId && (
-              <>
-                <ForkButton onClick={forkTemplate} />
-                {isAuthor && <DeleteButton onClick={deleteTemplate} />}
-              </>
-            )}
-          </div>
-        </div>
-        <div>
-          <OutputBox output={output} />
-          <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
-        </div>
-      </div>
-      <div className="mt-4">
-        <h2 className="text-xl font-semibold mb-2">Explanation</h2>
-        <EditableField
-          value={explanation}
-          onChange={setExplanation}
-          multiline
-          className="w-full p-2 border rounded"
-          isEditing={isAuthor}
-        />
-      </div>
-      <div className="mt-4">
-        <h2 className="text-xl font-semibold mb-2">Tags</h2>
-        <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
       </div>
     </div>
   )

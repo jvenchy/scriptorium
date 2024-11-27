@@ -59,12 +59,13 @@ export function AuthModal({ open, onClose, initialMode = 'login', onModeChange }
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: 400,
+        color: 'black',
         bgcolor: 'background.paper',
         boxShadow: 24,
         p: 4,
         borderRadius: 1,
       }}>
-        <Typography variant="h6" component="h2" gutterBottom>
+        <Typography variant="h6" component="h2" mb={2} gutterBottom>
           {initialMode === 'login' ? 'Sign In' : 'Sign Up'}
         </Typography>
         

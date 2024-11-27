@@ -45,28 +45,12 @@ export default async function handler(req, res) {
 
   // ensure all JSON parameters are of the correct type
   if (typeof title !== 'string' || typeof description !== 'string' ||
-      (tags && (!Array.isArray(tags) || tags.some(tag => typeof tag !== 'number'))) ||
+      (tags && (!Array.isArray(tags) || tags.some(tag => typeof tag !== 'string'))) ||
       (codeTemplates && (!Array.isArray(codeTemplates) || codeTemplates.some(template => typeof template !== 'number')))) {
     return res.status(400).json({ error: "One or more parameters are of the incorrect type!" });
   }
 
   try {
-
-    // check if tags exist
-    for (let tag of tags) {
-      const tagExists = await prisma.tag.findUnique({ where: { id: tag } });
-      if (!tagExists) {
-        return res.status(400).json({ error: `Tag with ID ${tag} does not exist` });
-      }
-    }
-
-    // check if codeTemplates exist
-    for (let template of codeTemplates) {
-      const templateExists = await prisma.codeTemplate.findUnique({ where: { id: template } });
-      if (!templateExists) {
-        return res.status(400).json({ error: `Code template with ID ${template} does not exist` });
-      }
-    }
 
     // create new blog post
     const newBlogPost = await prisma.blogPost.create({
@@ -77,7 +61,10 @@ export default async function handler(req, res) {
           connect: { id: authorId }, // connect author to blog post
         },
         tags: {
-          connect: tags.map(tag => ({ id: tag })),
+          connectOrCreate: tags.map(tagName => ({
+            where: { name: tagName },
+            create: { name: tagName },
+          })),
         },
         codeTemplates: {
           connect: codeTemplates.map(codeTemplateId => ({ id: codeTemplateId })), // assuming codeTemplates are passed as IDs

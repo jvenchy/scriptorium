@@ -113,18 +113,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           </ListItemButton>
         </Link>
 
-        <ListItemButton>
-          <ListItemIcon>
-            <CodeIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Code Editor"
-            primaryTypographyProps={{
-              fontFamily: 'monospace',
-              color: 'black',
-            }}
-          />
-        </ListItemButton>
+        <Link href="/editor" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <ListItemButton>
+            <ListItemIcon>
+              <CodeIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Code Editor"
+              primaryTypographyProps={{
+                fontFamily: 'monospace',
+                color: 'black',
+              }}
+            />
+          </ListItemButton>
+        </Link>
 
         {isAuthenticated ? (
           <Link href="/createPost" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -167,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <CodeIcon />
           </ListItemIcon>
           <ListItemText
-            primary="My Templates"
+            primary="Saved Templates"
             primaryTypographyProps={{
               fontFamily: 'monospace',
               color: 'black',
@@ -199,6 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           sx={{
             width: 400,
             bgcolor: 'background.paper',
+            color: 'black',
             borderRadius: 2,
             boxShadow: 24,
             p: 4,

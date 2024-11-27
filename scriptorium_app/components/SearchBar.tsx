@@ -154,7 +154,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               variant="outlined"
               placeholder="Separate templates with commas"
               value={searchParams.blogTemplates}
-              onChange={(e) => handleInputChange("templates", e.target.value)}
+              onChange={(e) => handleInputChange("blogTemplates", e.target.value)}
               helperText="Example: blog, portfolio, dashboard"
             />
             <TextField

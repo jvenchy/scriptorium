@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, SetStateAction } from 'react';
 import {
   Box,
   TextField,
@@ -16,9 +16,9 @@ import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/NavBar';
+import TagEditor from '@/components/TagEditor';
 
 // Sample data - replace with API calls
-const availableTags = ['JavaScript', 'React', 'Node.js', 'TypeScript', 'Python'];
 const availableTemplates = [
   'React Component Boilerplate',
   'Express API Endpoint',
@@ -52,7 +52,10 @@ const CreatePost: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          tags: formData.tags.map(tag => tag.trim()), // Ensure tags are trimmed
+        }),
       });
 
       if (!response.ok) {
@@ -64,15 +67,6 @@ const CreatePost: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
-  };
-
-  const handleTagToggle = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag],
-    }));
   };
 
   const handleTemplateToggle = (template: string) => {
@@ -92,6 +86,11 @@ const CreatePost: React.FC = () => {
     template.toLowerCase().includes(templateSearch.toLowerCase())
   );
 
+  // Define the setTags function
+  const setTags = (newTags: SetStateAction<string[]>) => {
+    setFormData(prev => ({ ...prev, tags: typeof newTags === 'function' ? newTags(prev.tags) : newTags }));
+  };
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar
@@ -107,9 +106,7 @@ const CreatePost: React.FC = () => {
         sx={{ 
           flexGrow: 1, 
           ml: '240px', 
-          p: 3,
-          maxWidth: '1000px',
-          mx: 'auto'
+          p: 4,
         }}
       >
         <Paper 
@@ -119,6 +116,8 @@ const CreatePost: React.FC = () => {
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 2,
+            maxWidth: 800,
+            mx: 'auto',
           }}
         >
           <Stack spacing={4}>
@@ -189,44 +188,10 @@ const CreatePost: React.FC = () => {
                   >
                     Tags
                   </Typography>
-                  <FormGroup>
-                    <Stack direction="row" flexWrap="wrap" gap={2}>
-                      {availableTags.map(tag => (
-                        <FormControlLabel
-                          key={tag}
-                          control={
-                            <Checkbox
-                              checked={formData.tags.includes(tag)}
-                              onChange={() => handleTagToggle(tag)}
-                              sx={{
-                                '&.Mui-checked': {
-                                  color: 'primary.main',
-                                },
-                              }}
-                            />
-                          }
-                          label={
-                            <Typography sx={{ fontFamily: 'monospace' }}>
-                              {tag}
-                            </Typography>
-                          }
-                        />
-                      ))}
-                    </Stack>
-                  </FormGroup>
-                  <Button
-                    startIcon={<AddIcon />}
-                    sx={{
-                      mt: 2,
-                      fontFamily: 'monospace',
-                      color: 'text.secondary',
-                      '&:hover': {
-                        bgcolor: 'action.hover',
-                      },
-                    }}
-                  >
-                    Add New Tag
-                  </Button>
+                  <TagEditor 
+                    tags={formData.tags}
+                    setTags={setTags}
+                  />
                 </Box>
 
                 {/* Code Templates Section */}

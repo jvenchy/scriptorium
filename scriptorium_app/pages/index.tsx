@@ -36,6 +36,7 @@ import SearchBar from "@/components/SearchBar";
 import { Navbar } from '@/components/NavBar';
 import { useSearch } from '@/contexts/SearchContext';
 import Link from 'next/link';
+import ProfileComponent from '@/components/ProfileComponent';
 
 const TemplateList = () => (
   <Box sx={{ p: 3 }}>
@@ -91,9 +92,7 @@ const ScriptoriumLayout: React.FC = () => {
         >
           <Stack direction="row" alignItems="center" spacing={2}>
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <SearchBar
-                contentType={contentType}
-            />
+              <SearchBar contentType={contentType} />
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography sx={{ fontFamily: 'monospace' }}>Templates</Typography>
                 <Switch
@@ -127,16 +126,7 @@ const ScriptoriumLayout: React.FC = () => {
               </Stack>
             )}
 
-            {isAuthenticated && (
-              <Link href="/profile" style={{ textDecoration: 'none' }}>
-                <Button
-                  startIcon={<UserIcon />}
-                  sx={{ fontFamily: 'monospace' }}
-                >
-                  Profile
-                </Button>
-              </Link>
-            )}
+            {isAuthenticated && <ProfileComponent />}
           </Stack>
         </Box>
 

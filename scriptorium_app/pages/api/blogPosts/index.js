@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const {
       title,
       description,
-      tags,
+      tags, // Expecting tag names as a comma-separated string
       codeTemplateId,
       sort = 'createdAt', // default sort by creation date
       page = 1,           // default to first page
@@ -48,14 +48,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Tags filter
+    // Tags filter by name
     if (tags) {
-      // parseInt
-      const tagArray = Array.isArray(tags) ? tags.map(tag => parseInt(tag)) : [parseInt(tags)];
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
       where.AND.push({
         tags: {
           some: {
-            id: {
+            name: {
               in: tagArray
             }
           }
