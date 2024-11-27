@@ -12,6 +12,8 @@ import TagEditor from '@/components/TagEditor'
 import SaveButton from '@/components/SaveButton'
 import ForkButton from '@/components/ForkButton'
 import DeleteButton from '@/components/DeleteButton'
+import { useAuth } from '@/contexts/AuthContext'
+import Image from 'next/image'
 
 interface CodeTemplate {
   id: number
@@ -31,8 +33,6 @@ interface CodeTemplate {
   }
   forks: any[]
 }
-
-const ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphbmUuZG9lQGV4YW1wbGUuY29tIiwiaXNBZG1pbmlzdHJhdG9yIjpmYWxzZSwiZXhwIjoxNzMyNzcwMDM4LCJpYXQiOjE3MzI2NDE2OTh9.eSnT3pyloiBupkI5ES8wg6W3drcUblNSTmUcSsEuV74'
 
 const DEFAULT_TEMPLATE = {
   id: 0,
@@ -57,6 +57,7 @@ export default function EditorPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const templateId = searchParams.get('template')
+  const { user } = useAuth()
 
   const [template, setTemplate] = useState<CodeTemplate | null>(null)
   const [code, setCode] = useState('')
@@ -67,11 +68,13 @@ export default function EditorPage() {
   const [explanation, setExplanation] = useState('')
   const [tags, setTags] = useState<string[]>([])
 
+  const isAuthor = user?.id === template?.authorId
+
   useEffect(() => {
     if (templateId) {
       fetch(`/api/code-templates/${templateId}`, {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
       })
         .then((res) => res.json())
@@ -98,7 +101,7 @@ export default function EditorPage() {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ACCESS_TOKEN}`
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       },
       body: JSON.stringify({ codeSnippet: code, language, stdin }),
     })
@@ -107,13 +110,15 @@ export default function EditorPage() {
   }
 
   const saveTemplate = async () => {
+    if (!user) return
+
     if (template && template.id !== 0) {
       // Update existing template
       const response = await fetch('/api/code-templates/update', {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify({
           codeTemplateId: template.id,
@@ -124,15 +129,27 @@ export default function EditorPage() {
           language,
         }),
       })
-      const result = await response.json()
-      alert('updated')
+      
+      if (!response.ok) {
+        throw new Error('Failed to update template')
+      }
+
+      // Refetch the template to get fresh data
+      const updatedResponse = await fetch(`/api/code-templates/${template.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+      const updatedData = await updatedResponse.json()
+      setTemplate(updatedData)
+      alert('Template updated successfully!')
     } else {
       // Create new template
       const response = await fetch('/api/code-templates/create', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify({
           codeSnippet: code,
@@ -143,19 +160,18 @@ export default function EditorPage() {
         }),
       })
       const result = await response.json()
-      console.log('Template created:', result)
       router.push(`/editor?template=${result.codeTemplateId}`)
     }
   }
 
   const forkTemplate = async () => {
-    if (!template) return
+    if (!template || !user) return
 
     const response = await fetch('/api/code-templates/create', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ACCESS_TOKEN}`
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       },
       body: JSON.stringify({
         codeSnippet: code,
@@ -167,12 +183,11 @@ export default function EditorPage() {
       }),
     })
     const result = await response.json()
-    console.log('Template forked:', result)
     router.push(`/editor?template=${result.codeTemplateId}`)
   }
 
   const deleteTemplate = async () => {
-    if (!template || template.id === 0) return
+    if (!template || template.id === 0 || !user) return
 
     const confirmDelete = window.confirm('Are you sure you want to delete this template?')
     if (!confirmDelete) return
@@ -181,26 +196,47 @@ export default function EditorPage() {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ACCESS_TOKEN}`
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
       },
       body: JSON.stringify({
         codeTemplateId: template.id
       }),
     })
-    const result = await response.json()
-    console.log('Template deleted:', result)
-    router.push('/editor') // Redirect to the default editor page
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete template')
+    }
+    
+    router.push('/editor')
   }
 
   if (!template) return <div>Loading...</div>
 
   return (
     <div className="container mx-auto p-4">
+      {user && (
+        <div className="mb-6 flex items-center justify-end space-x-4">
+          <div className="flex items-center space-x-2">
+            <Image
+              src={user.avatar || '/placeholder.svg'}
+              alt={`${user.firstName} ${user.lastName}`}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <div>
+              <p className="font-semibold">{`${user.firstName} ${user.lastName}`}</p>
+              <p className="text-sm text-gray-500">{user.email}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <EditableField
         value={title}
         onChange={setTitle}
         className="text-2xl font-bold mb-4"
-        isEditing={true}
+        isEditing={isAuthor}
       />
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -220,11 +256,11 @@ export default function EditorPage() {
           </div>
           <div className="mt-4 flex space-x-4">
             <RunButton onClick={runCode} />
-            <SaveButton onClick={saveTemplate} />
+            {isAuthor && <SaveButton onClick={saveTemplate} />}
             {templateId && (
               <>
                 <ForkButton onClick={forkTemplate} />
-                <DeleteButton onClick={deleteTemplate} />
+                {isAuthor && <DeleteButton onClick={deleteTemplate} />}
               </>
             )}
           </div>
@@ -241,12 +277,12 @@ export default function EditorPage() {
           onChange={setExplanation}
           multiline
           className="w-full p-2 border rounded"
-          isEditing={true}
+          isEditing={isAuthor}
         />
       </div>
       <div className="mt-4">
         <h2 className="text-xl font-semibold mb-2">Tags</h2>
-        <TagEditor tags={tags} setTags={setTags} isEditing={true}/>
+        <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
       </div>
     </div>
   )

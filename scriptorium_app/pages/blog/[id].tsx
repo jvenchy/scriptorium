@@ -11,6 +11,8 @@ import TagEditor from '@/components/TagEditor'
 import SaveButton from '@/components/SaveButton'
 import CommentForm from '@/components/CommentForm'
 import ReportModal from '@/components/ReportModal'
+import { useAuth } from '@/contexts/AuthContext'
+import { Avatar } from '@mui/material'
 
 interface Author {
   id: number
@@ -53,18 +55,15 @@ interface BlogPost {
   id: number
   title: string
   description: string
-  content: string
   createdAt: string
   updatedAt: string
   author: Author
   tags: Tag[]
   codeTemplates: CodeTemplate[]
   comments: Comment[]
+  upvotes: number
+  downvotes: number
 }
-
-const ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImphbmUuZG9lQGV4YW1wbGUuY29tIiwiaXNBZG1pbmlzdHJhdG9yIjpmYWxzZSwiZXhwIjoxNzMyNzcwMDM4LCJpYXQiOjE3MzI2NDE2OTh9.eSnT3pyloiBupkI5ES8wg6W3drcUblNSTmUcSsEuV74'
-
-const CURRENT_USER_ID = 1 // Assume this is the ID of the currently logged-in user
 
 const getImageSrc = (src: string) => {
   return src.startsWith('http') ? src : `/placeholder.svg?height=40&width=40`
@@ -72,13 +71,13 @@ const getImageSrc = (src: string) => {
 
 export default function BlogPostPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const { id: postId } = router.query // Extract `id` from dynamic route
   const [blogPost, setBlogPost] = useState<BlogPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [content, setContent] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [replyingTo, setReplyingTo] = useState<number | null>(null)
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
@@ -97,7 +96,7 @@ export default function BlogPostPage() {
     try {
       const response = await fetch(`/api/blogPosts/${id}`, {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         }
       })
       if (!response.ok) {
@@ -107,7 +106,6 @@ export default function BlogPostPage() {
       setBlogPost(data)
       setTitle(data.title)
       setDescription(data.description)
-      setContent(data.content)
       setTags(data.tags.map((tag: Tag) => tag.name))
     } catch (err) {
       setError('An error occurred while fetching the blog post.')
@@ -117,20 +115,19 @@ export default function BlogPostPage() {
   }
 
   const saveBlogPost = async () => {
-    if (!blogPost) return
+    if (!blogPost || !user) return
 
     try {
       const response = await fetch(`/api/blogPosts/${blogPost.id}/edit`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
           title,
           description,
-          content,
-          tags: tags.map(tag => ({ name: tag }))
+          tags: tags
         })
       })
 
@@ -138,8 +135,7 @@ export default function BlogPostPage() {
         throw new Error('Failed to update blog post')
       }
 
-      const updatedPost = await response.json()
-      setBlogPost(updatedPost)
+      await fetchBlogPost(blogPost.id.toString())
       setIsEditMode(false)
       alert('Blog post updated successfully!')
     } catch (err) {
@@ -155,7 +151,7 @@ export default function BlogPostPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
           content,
@@ -188,7 +184,7 @@ export default function BlogPostPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
           content: newContent
@@ -214,7 +210,7 @@ export default function BlogPostPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({ voteType })
       })
@@ -244,7 +240,7 @@ export default function BlogPostPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({ explanation })
       })
@@ -267,7 +263,7 @@ export default function BlogPostPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ACCESS_TOKEN}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({ explanation })
       })
@@ -372,7 +368,7 @@ export default function BlogPostPage() {
               Reply
             </button>
           )}
-          {comment.canEdit && comment.author.id === CURRENT_USER_ID && editingCommentId !== comment.id && (
+          {comment.canEdit && comment.author.id === user?.id && editingCommentId !== comment.id && (
             <button
               onClick={() => setEditingCommentId(comment.id)}
               className="text-blue-500 hover:underline"
@@ -399,6 +395,54 @@ export default function BlogPostPage() {
     ))
   }
 
+  const voteBlogPost = async (voteType: 'upvote' | 'downvote') => {
+    if (!blogPost) return
+
+    try {
+      const response = await fetch(`/api/blogPosts/${blogPost.id}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ voteType })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to vote on blog post')
+      }
+
+      await fetchBlogPost(blogPost.id.toString())
+    } catch (err) {
+      setError('An error occurred while voting on the blog post.')
+    }
+  }
+
+  const deleteBlogPost = async () => {
+    if (!blogPost || !user) return
+    
+    if (!confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/blogPosts/${blogPost.id}/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete blog post')
+      }
+
+      router.push('/')
+    } catch (err) {
+      setError('An error occurred while deleting the blog post.')
+    }
+  }
+
   if (isLoading) {
     return <div className="container mx-auto p-4">Loading...</div>
   }
@@ -413,6 +457,24 @@ export default function BlogPostPage() {
 
   return (
     <div className="container mx-auto p-4">
+      {user && (
+        <div className="mb-6 flex items-center justify-end space-x-4">
+          <div className="flex items-center space-x-2">
+            <Image
+              src={user.avatar || '/placeholder.svg'}
+              alt={`${user.firstName} ${user.lastName}`}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <div>
+              <p className="font-semibold">{`${user.firstName} ${user.lastName}`}</p>
+              <p className="text-sm text-gray-500">{user.email}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <article className="max-w-3xl mx-auto">
         <header className="mb-8">
           <div className="flex justify-between items-center mb-4">
@@ -426,12 +488,22 @@ export default function BlogPostPage() {
               <h1 className="text-4xl font-bold">{blogPost.title}</h1>
             )}
             <div className="space-x-2">
-              <button
-                onClick={() => setIsEditMode(!isEditMode)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                {isEditMode ? 'Cancel Edit' : 'Edit Post'}
-              </button>
+              {user?.id === blogPost.author.id && (
+                <>
+                  <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    {isEditMode ? 'Cancel Edit' : 'Edit Post'}
+                  </button>
+                  <button
+                    onClick={deleteBlogPost}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Delete Post
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => {
                   setReportTarget({ type: 'post', id: blogPost.id })
@@ -444,38 +516,40 @@ export default function BlogPostPage() {
             </div>
           </div>
           {isEditMode ? (
-            <>
+            <div className="mb-8">
               <EditableField
                 value={description}
                 onChange={setDescription}
-                className="text-gray-600 mb-4"
+                multiline
+                className="prose max-w-none"
               />
-              <TagEditor tags={tags} setTags={setTags} />
-            </>
+            </div>
           ) : (
             <>
-              <p className="text-gray-600 mb-4">{blogPost.description}</p>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {blogPost.tags.map((tag) => (
-                  <span key={tag.id} className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
-                    {tag.name}
-                  </span>
-                ))}
+              <div className="prose max-w-none mb-8">
+                {blogPost.description}
+              </div>
+              <div className="flex items-center space-x-4 mb-8 justify-center">
+                <button
+                  onClick={() => voteBlogPost('upvote')}
+                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-500"
+                >
+                  <span>👍</span>
+                  <span>{blogPost.upvotes}</span>
+                </button>
+                <button
+                  onClick={() => voteBlogPost('downvote')}
+                  className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
+                >
+                  <span>👎</span>
+                  <span>{blogPost.downvotes}</span>
+                </button>
               </div>
             </>
           )}
           <AuthorInfo author={blogPost.author} forkedFromId={null} />
         </header>
-        {isEditMode ? (
-          <EditableField
-            value={content}
-            onChange={setContent}
-            multiline
-            className="prose max-w-none mb-8"
-          />
-        ) : (
-          <div className="prose max-w-none mb-8" dangerouslySetInnerHTML={{ __html: blogPost.content }} />
-        )}
+       
         {blogPost.codeTemplates.length > 0 && (
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Related Code Templates</h2>

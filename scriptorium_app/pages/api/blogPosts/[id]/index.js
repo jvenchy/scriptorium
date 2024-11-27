@@ -71,6 +71,8 @@ export default async function handler(req, res) {
       title: blogPost.title,
       description: blogPost.description,
       content: blogPost.content,
+      upvotes: blogPost.upvotes,
+      downvotes: blogPost.downvotes,
       createdAt: blogPost.createdAt,
       updatedAt: blogPost.updatedAt,
       author: blogPost.author,
