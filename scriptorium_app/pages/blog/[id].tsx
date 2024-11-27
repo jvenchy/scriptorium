@@ -368,13 +368,21 @@ export default function BlogPostPage() {
               Reply
             </button>
           )}
-          {comment.canEdit && comment.author.id === user?.id && editingCommentId !== comment.id && (
-            <button
-              onClick={() => setEditingCommentId(comment.id)}
-              className="text-blue-500 hover:underline"
-            >
-              Edit
-            </button>
+          {comment.canEdit && comment.author.id === user?.id && (
+            <>
+              <button
+                onClick={() => setEditingCommentId(comment.id)}
+                className="text-blue-500 hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => deleteComment(comment.id)}
+                className="text-red-500 hover:underline"
+              >
+                Delete
+              </button>
+            </>
           )}
           <button
             onClick={() => {
@@ -440,6 +448,31 @@ export default function BlogPostPage() {
       router.push('/')
     } catch (err) {
       setError('An error occurred while deleting the blog post.')
+    }
+  }
+
+  const deleteComment = async (commentId: number) => {
+    if (!blogPost) return
+
+    if (!confirm('Are you sure you want to delete this comment? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/blogPosts/${blogPost.id}/comments/${commentId}/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete comment')
+      }
+
+      await fetchBlogPost(blogPost.id.toString())
+    } catch (err) {
+      setError('An error occurred while deleting the comment.')
     }
   }
 
