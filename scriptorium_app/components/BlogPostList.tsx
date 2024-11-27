@@ -105,7 +105,7 @@ export const BlogPostList: React.FC = () => {
           searchResults.map((post) => (
             <Grid item xs={12} sm={6} md={4} key={post.id}>
               <Link 
-                href={`/blogPost/${post.id}`} 
+                href={`/blog/${post.id}`} 
                 style={{ textDecoration: 'none' }}
               >
                 <Card 

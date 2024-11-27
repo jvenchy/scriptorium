@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import CodeEditor from '@/components/CodeEditor'
 import LanguageSelector from '@/components/LanguageSelector'
 import RunButton from '@/components/RunButton'
@@ -55,8 +55,7 @@ const DEFAULT_TEMPLATE = {
 
 export default function EditorPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const templateId = searchParams.get('template')
+  const { id: templateId } = router.query // Extract `template` from dynamic route
 
   const [template, setTemplate] = useState<CodeTemplate | null>(null)
   const [code, setCode] = useState('')
@@ -125,7 +124,7 @@ export default function EditorPage() {
         }),
       })
       const result = await response.json()
-      alert('updated')
+      alert('Updated!')
     } else {
       // Create new template
       const response = await fetch('/api/code-templates/create', {
@@ -144,7 +143,7 @@ export default function EditorPage() {
       })
       const result = await response.json()
       console.log('Template created:', result)
-      router.push(`/editor?template=${result.codeTemplateId}`)
+      router.push(`/editor/${result.codeTemplateId}`)
     }
   }
 
@@ -168,7 +167,7 @@ export default function EditorPage() {
     })
     const result = await response.json()
     console.log('Template forked:', result)
-    router.push(`/editor?template=${result.codeTemplateId}`)
+    router.push(`/editor/${result.codeTemplateId}`)
   }
 
   const deleteTemplate = async () => {
@@ -251,4 +250,3 @@ export default function EditorPage() {
     </div>
   )
 }
-

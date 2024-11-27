@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
@@ -72,8 +72,7 @@ const getImageSrc = (src: string) => {
 
 export default function BlogPostPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const postId = searchParams.get('id')
+  const { id: postId } = router.query // Extract `id` from dynamic route
   const [blogPost, setBlogPost] = useState<BlogPost | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -90,7 +89,7 @@ export default function BlogPostPage() {
 
   useEffect(() => {
     if (postId) {
-      fetchBlogPost(postId)
+      fetchBlogPost(postId as string)
     }
   }, [postId])
 
@@ -178,7 +177,6 @@ export default function BlogPostPage() {
   const editComment = async (commentId: number, newContent: string) => {
     if (!blogPost) return
 
-    // If the new content is the same as the original, just cancel the edit
     const originalComment = blogPost.comments.find(c => c.id === commentId)
     if (originalComment && originalComment.content === newContent) {
       setEditingCommentId(null)
@@ -484,7 +482,7 @@ export default function BlogPostPage() {
             <ul className="space-y-4">
               {blogPost.codeTemplates.map((template) => (
                 <li key={template.id} className="border rounded p-4">
-                  <Link href={`/editor?template=${template.id}`} className="text-blue-500 hover:underline">
+                  <Link href={`/editor/${template.id}`} className="text-blue-500 hover:underline">
                     <h3 className="text-xl font-semibold mb-2">{template.title}</h3>
                   </Link>
                   <p className="text-gray-600 mb-2">{template.explanation}</p>
@@ -519,4 +517,3 @@ export default function BlogPostPage() {
     </div>
   )
 }
-
