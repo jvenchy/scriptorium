@@ -65,9 +65,26 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "You don't have permission to delete this comment" });
     }
 
-    // Delete the comment
-    await prisma.comment.delete({
-      where: { id: parseInt(commentId) }
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete all replies to this comment
+      await tx.comment.deleteMany({
+        where: { parentCommentId: parseInt(commentId) }
+      });
+
+      // 2. Delete all votes related to this comment
+      await tx.commentVote.deleteMany({
+        where: { commentId: parseInt(commentId) }
+      });
+
+      // 3. Delete all reports related to this comment
+      await tx.commentReport.deleteMany({
+        where: { commentId: parseInt(commentId) }
+      });
+
+      // 4. Finally, delete the comment
+      await tx.comment.delete({
+        where: { id: parseInt(commentId) }
+      });
     });
 
     return res.status(200).json({ message: "Comment deleted successfully", deletedCommentId: commentId });

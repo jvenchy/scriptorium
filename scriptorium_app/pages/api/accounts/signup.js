@@ -36,9 +36,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Email must be valid" });
   }
 
-  // Phone number should be only digits
+  // Phone number should be only digits and exactly 10 characters long
   if (!/^\d+$/.test(phoneNumber)) {
     return res.status(400).json({ error: "Phone number must contain only digits" });
+  }
+  if (phoneNumber.length !== 10) {
+    return res.status(400).json({ error: "Phone number must be exactly 10 digits long" });
   }
 
   try {
