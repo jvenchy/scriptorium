@@ -15,6 +15,7 @@ import DeleteButton from '@/components/DeleteButton'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import { Navbar } from '@/components/NavBar'
+import ProfileComponent from '@/components/ProfileComponent'
 
 interface CodeTemplate {
   id: number
@@ -225,6 +226,12 @@ export default function EditorPage() {
         onCreatePostClick={() => router.push('/createPost')}
       />
       <div className="flex-grow container mx-auto p-8 ml-60">
+        {user && (
+          <div className="mb-6 flex items-center justify-end space-x-4">
+            <ProfileComponent />
+          </div>
+        )}
+
         <EditableField
           value={title}
           onChange={setTitle}

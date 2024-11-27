@@ -40,9 +40,23 @@ const getReportedBlogPosts = async (req, res) => {
       orderBy: sortField,
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
+      include: {
+        reports: {
+          select: {
+            explanation: true
+          }
+        }
+      }
     });
 
-    return res.status(200).json(reportedBlogPosts);
+    // Transform the response to include explanations as a simple array
+    const formattedPosts = reportedBlogPosts.map(post => ({
+      ...post,
+      reportExplanations: post.reports.map(report => report.explanation),
+      reports: undefined // Remove the original reports object
+    }));
+
+    return res.status(200).json(formattedPosts);
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Error retrieving reported blog posts" });

@@ -8,7 +8,7 @@ const getReportedComments = async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Extract query parameters
+  // extract query parameters
   const { sortBy, page = 1, limit = 10 } = req.query;
 
   let sortField;
@@ -28,10 +28,10 @@ const getReportedComments = async (req, res) => {
 
     // validate page and limit parameters
     if (isNaN(pageNumber) || pageNumber < 1) {
-      return res.status(400).json({ error: "Invalid page number" });
+      return res.status(400).json({ error: "invalid page number" });
     }
     if (isNaN(pageSize) || pageSize < 1) {
-      return res.status(400).json({ error: "Invalid limit number" });
+      return res.status(400).json({ error: "invalid limit number" });
     }
 
     // fetch reported comments, sorted by the specified field, with pagination
@@ -40,9 +40,23 @@ const getReportedComments = async (req, res) => {
       orderBy: sortField,
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
+      include: {
+        reports: {
+          select: {
+            explanation: true
+          }
+        }
+      }
     });
 
-    return res.status(200).json(reportedComments);
+    // Transform the response to include explanations as a simple array
+    const formattedComments = reportedComments.map(comment => ({
+      ...comment,
+      reportExplanations: comment.reports.map(report => report.explanation),
+      reports: undefined // Remove the original reports object
+    }));
+
+    return res.status(200).json(formattedComments);
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Error retrieving reported comments" });

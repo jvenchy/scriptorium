@@ -17,6 +17,7 @@ import {
   Book as BookIcon,
   Edit as EditIcon,
   Home as HomeIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
 
@@ -156,6 +157,23 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
             />
           </ListItemButton>
+        )}
+
+        {user?.isAdministrator && (
+          <Link href="/admin" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <AdminIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Reports"
+                primaryTypographyProps={{
+                  fontFamily: 'monospace',
+                  color: 'black',
+                }}
+              />
+            </ListItemButton>
+          </Link>
         )}
 
         <ListItem sx={{ pt: 4, pb: 2 }}>
