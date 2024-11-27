@@ -50,7 +50,8 @@ export default async function handler(req, res) {
 
     // Tags filter
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags];
+      // parseInt
+      const tagArray = Array.isArray(tags) ? tags.map(tag => parseInt(tag)) : [parseInt(tags)];
       where.AND.push({
         tags: {
           some: {
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
       where.AND.push({
         codeTemplates: {
           some: {
-            id: codeTemplateId
+            id: parseInt(codeTemplateId)
           }
         }
       });
