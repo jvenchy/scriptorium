@@ -1,59 +1,21 @@
 import React, { useState, useEffect } from "react";
 import {
-  Menu as MenuIcon,
-  Code as CodeIcon,
-  Book as BookIcon,
-  Person as UserIcon,
-  Search as SearchIcon,
-  Home as HomeIcon,
-  Edit as EditIcon,
-} from "@mui/icons-material";
-import {
   Button,
-  IconButton,
-  TextField,
-  Modal,
   Box,
   Typography,
-  Switch,
-  Pagination,
-  Card,
-  CardContent,
   Stack,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
+  Switch,
 } from "@mui/material";
 import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/router';
 import { BlogPostList } from '@/components/BlogPostList';
-
-// testing
+import { TemplateList } from '@/components/TemplateList';
 import SearchBar from "@/components/SearchBar";
 import { Navbar } from '@/components/NavBar';
-import { useSearch } from '@/contexts/SearchContext';
-import Link from 'next/link';
 import ProfileComponent from '@/components/ProfileComponent';
-
-const TemplateList = () => (
-  <Box sx={{ p: 3 }}>
-    <Typography>Template List Coming Soon</Typography>
-  </Box>
-);
-
-interface AuthModalProps {
-  open: boolean;
-  onClose: () => void;
-  initialMode?: 'login' | 'signup';
-  onModeChange: React.Dispatch<React.SetStateAction<'login' | 'signup'>>;
-}
 
 const ScriptoriumLayout: React.FC = () => {
   const { isAuthenticated, logout, user } = useAuth();
-  const { cleanup } = useSearch();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [contentType, setContentType] = useState<'templates' | 'blogs'>('blogs');

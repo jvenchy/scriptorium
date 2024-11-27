@@ -5,6 +5,7 @@ interface EditableFieldProps {
   onChange: (value: string) => void
   multiline?: boolean
   className?: string
+  isEditing?: boolean
 }
 
 const EditableField: React.FC<EditableFieldProps> = ({ value, onChange, multiline = false, className = '' }) => {

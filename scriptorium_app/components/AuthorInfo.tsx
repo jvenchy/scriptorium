@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import { Avatar, Box, Typography } from '@mui/material'
 
 interface AuthorInfoProps {
   author: {
@@ -12,32 +12,30 @@ interface AuthorInfoProps {
   forkedFromId: number | null
 }
 
+const defaultAvatar = '/broken-image.jpg';
+
 export default function AuthorInfo({ author, forkedFromId }: AuthorInfoProps) {
   return (
-    <div className="bg-gray-100 p-4 rounded-lg">
-      <h2 className="text-2xl font-helvetica font-semibold mb-4">Author Information</h2>
-      <div className="flex items-center">
-        <Image
-          src={author.avatar || '/placeholder.svg'}
-          alt={`${author.firstName} ${author.lastName}`}
-          width={48}
-          height={48}
-          className="rounded-full mr-4"
+    <Box className="bg-gray-50 p-4 rounded-lg shadow-sm">
+      <Box className="flex items-center mb-2">
+        <Avatar
+          src={author.avatar || defaultAvatar}
+          sx={{ width: 40, height: 40, mr: 1 }}
         />
-        <div>
-          <p className="font-helvetica font-semibold">{`${author.firstName} ${author.lastName}`}</p>
-          <p className="text-sm text-gray-600 font-mono">{author.email}</p>
-        </div>
-      </div>
+        <Box>
+          <Typography className="font-semibold">{`${author.firstName} ${author.lastName}`}</Typography>
+          <Typography className="text-sm text-gray-500">{author.email}</Typography>
+        </Box>
+      </Box>
       {forkedFromId && (
-        <p className="mt-4 font-mono">
-          Forked from:{' '}
-          <Link href={`/editor?template=${forkedFromId}`} className="text-blue-500 hover:underline">
+        <Typography className="text-sm text-gray-600">
+          Forked from: 
+          <Link href={`/editor?template=${forkedFromId}`} className="text-blue-500 hover:underline ml-1">
             Template #{forkedFromId}
           </Link>
-        </p>
+        </Typography>
       )}
-    </div>
+    </Box>
   )
 }
 

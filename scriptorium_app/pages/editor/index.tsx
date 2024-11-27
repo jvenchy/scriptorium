@@ -15,7 +15,6 @@ import DeleteButton from '@/components/DeleteButton'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import { Navbar } from '@/components/NavBar'
-import ProfileComponent from '@/components/ProfileComponent'
 
 interface CodeTemplate {
   id: number
@@ -47,8 +46,8 @@ const DEFAULT_TEMPLATE = {
   tags: [{ id: 1, name: 'JavaScript' }, { id: 2, name: 'Beginner' }, { id: 3, name: 'Example' }],
   author: {
     id: 1,
-    firstName: 'John',
-    lastName: 'Doe',
+    firstName: 'Anonymous',
+    lastName: 'Coder',
     email: 'john.doe@example.com',
     avatar: '/broken-image.jpg',
   },
@@ -226,12 +225,6 @@ export default function EditorPage() {
         onCreatePostClick={() => router.push('/createPost')}
       />
       <div className="flex-grow container mx-auto p-8 ml-60">
-        {user && (
-          <div className="mb-6 flex items-center justify-end space-x-4">
-            <ProfileComponent />
-          </div>
-        )}
-
         <EditableField
           value={title}
           onChange={setTitle}
@@ -242,19 +235,6 @@ export default function EditorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
             <LanguageSelector language={language} setLanguage={setLanguage} />
-            <CodeEditor code={code} setCode={setCode} language={language} />
-            <div>
-              <label htmlFor="stdin" className="block text-sm font-medium text-gray-700 mb-2">
-                Standard Input
-              </label>
-              <textarea
-                id="stdin"
-                className="w-full p-2 border rounded font-mono"
-                rows={3}
-                value={stdin}
-                onChange={(e) => setStdin(e.target.value)}
-              />
-            </div>
             <div className="flex flex-wrap gap-4">
               <RunButton onClick={runCode} />
               {isAuthor && <SaveButton onClick={saveTemplate} />}
@@ -265,10 +245,20 @@ export default function EditorPage() {
                 </>
               )}
             </div>
+            <CodeEditor code={code} setCode={setCode} language={language} />
+            <OutputBox output={output} />
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <h2 className="text-2xl font-helvetica font-semibold mb-4">Standard Input</h2>
+              <textarea
+                id="stdin"
+                className="w-full p-2 border rounded font-mono bg-white"
+                rows={3}
+                value={stdin}
+                onChange={(e) => setStdin(e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-6">
-            <OutputBox output={output} />
-            <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
             <div>
               <h2 className="text-2xl font-helvetica font-semibold mb-2">Explanation</h2>
               <EditableField
@@ -283,6 +273,7 @@ export default function EditorPage() {
               <h2 className="text-2xl font-helvetica font-semibold mb-2">Tags</h2>
               <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
             </div>
+            <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
           </div>
         </div>
       </div>

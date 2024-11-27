@@ -5,9 +5,10 @@ import { Add as AddIcon } from '@mui/icons-material';
 interface TagEditorProps {
   tags: string[];
   setTags: React.Dispatch<React.SetStateAction<string[]>>;
+  isEditing?: boolean;
 }
 
-const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags }) => {
+const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags}) => {
   const [newTag, setNewTag] = useState('');
 
   const addTag = () => {

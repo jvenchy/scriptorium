@@ -299,7 +299,9 @@ export default function BlogPostPage() {
       <li 
         key={comment.id} 
         className={`border-b pb-4 ${level > 0 ? 'ml-8' : ''}`}
-        ref={el => commentRefs.current[comment.id] = el}
+        ref={el => {
+          commentRefs.current[comment.id] = el;
+        }}
       >
         <div className="flex items-center mb-2">
           <Avatar
