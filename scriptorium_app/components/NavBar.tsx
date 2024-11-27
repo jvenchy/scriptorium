@@ -194,19 +194,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
           />
         </ListItemButton>
-
-        <ListItemButton>
-          <ListItemIcon>
-            <BookIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="My Blog Posts"
-            primaryTypographyProps={{
-              fontFamily: 'monospace',
-              color: 'black',
-            }}
-          />
-        </ListItemButton>
       </List>
 
       {/* Auth Feedback Modal */}

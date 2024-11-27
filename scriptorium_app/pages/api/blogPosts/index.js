@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       title,
       description,
       tags, // Expecting tag names as a comma-separated string
-      codeTemplateId,
+      templateName,
       sort = 'createdAt', // default sort by creation date
       page = 1,           // default to first page
       limit = 10          // default items per page
@@ -62,12 +62,14 @@ export default async function handler(req, res) {
       });
     }
 
-    // Code templates filter
-    if (codeTemplateId) {
+    // Code templates filter by name instead of ID
+    if (templateName) {
       where.AND.push({
         codeTemplates: {
           some: {
-            id: parseInt(codeTemplateId)
+            title: {
+              contains: templateName,
+            }
           }
         }
       });

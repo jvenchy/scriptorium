@@ -17,13 +17,12 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/NavBar';
 import TagEditor from '@/components/TagEditor';
+import TemplateSearch from '@/components/TemplateSearch';
 
-// Sample data - replace with API calls
-const availableTemplates = [
-  'React Component Boilerplate',
-  'Express API Endpoint',
-  'Python Data Processing Script',
-];
+interface Template {
+  id: string;
+  title: string;
+}
 
 const CreatePost: React.FC = () => {
   const router = useRouter();
@@ -36,6 +35,7 @@ const CreatePost: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [templateSearch, setTemplateSearch] = useState('');
+  const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -78,13 +78,27 @@ const CreatePost: React.FC = () => {
     }));
   };
 
+  const handleTemplateSelect = (template: Template) => {
+    if (!selectedTemplates.some(t => t.id === template.id)) {
+      setSelectedTemplates(prev => [...prev, template]);
+      setFormData(prev => ({
+        ...prev,
+        codeTemplates: [...prev.codeTemplates, template.id],
+      }));
+    }
+  };
+
+  const handleTemplateRemove = (templateId: string) => {
+    setSelectedTemplates(prev => prev.filter(t => t.id !== templateId));
+    setFormData(prev => ({
+      ...prev,
+      codeTemplates: prev.codeTemplates.filter(id => id !== templateId),
+    }));
+  };
+
   if (!isAuthenticated) {
     return null;
   }
-
-  const filteredTemplates = availableTemplates.filter(template =>
-    template.toLowerCase().includes(templateSearch.toLowerCase())
-  );
 
   // Define the setTags function
   const setTags = (newTags: SetStateAction<string[]>) => {
@@ -205,51 +219,12 @@ const CreatePost: React.FC = () => {
                   >
                     Code Templates
                   </Typography>
-                  <TextField
-                    fullWidth
-                    placeholder="Search for templates"
-                    value={templateSearch}
-                    onChange={(e) => setTemplateSearch(e.target.value)}
-                    sx={{
-                      mb: 2,
-                      '& .MuiInputBase-root': { 
-                        fontFamily: 'monospace',
-                        bgcolor: 'background.paper'
-                      }
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <SearchIcon sx={{ color: 'text.secondary' }} />
-                        </InputAdornment>
-                      ),
-                    }}
+                  <TemplateSearch 
+                    onSelect={handleTemplateSelect}
+                    userOnly={true}
+                    selectedTemplates={selectedTemplates}
+                    onRemove={handleTemplateRemove}
                   />
-                  <FormGroup>
-                    <Stack gap={1}>
-                      {filteredTemplates.map(template => (
-                        <FormControlLabel
-                          key={template}
-                          control={
-                            <Checkbox
-                              checked={formData.codeTemplates.includes(template)}
-                              onChange={() => handleTemplateToggle(template)}
-                              sx={{
-                                '&.Mui-checked': {
-                                  color: 'primary.main',
-                                },
-                              }}
-                            />
-                          }
-                          label={
-                            <Typography sx={{ fontFamily: 'monospace' }}>
-                              {template}
-                            </Typography>
-                          }
-                        />
-                      ))}
-                    </Stack>
-                  </FormGroup>
                 </Box>
 
                 {error && (

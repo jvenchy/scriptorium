@@ -42,7 +42,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     contentType: 'blogs',
     sort: 'createdAt_desc',
     page: 1,
-    limit: 10
+    limit: 9
   };
 
   const [searchParams, setSearchParams] = useState<SearchParams>(defaultSearchParams);
