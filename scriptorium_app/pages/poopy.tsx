@@ -30,8 +30,6 @@ import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { BlogPostList } from '@/components/BlogPostList';
-
-// testing
 import SearchBar from "@/components/SearchBar";
 import { Navbar } from '@/components/NavBar';
 import { useSearch } from '@/contexts/SearchContext';
@@ -50,9 +48,10 @@ interface AuthModalProps {
   onModeChange: React.Dispatch<React.SetStateAction<'login' | 'signup'>>;
 }
 
+
+
 const ScriptoriumLayout: React.FC = () => {
   const { isAuthenticated, logout, user } = useAuth();
-  const { cleanup } = useSearch();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [contentType, setContentType] = useState<'templates' | 'blogs'>('blogs');
@@ -75,7 +74,7 @@ const ScriptoriumLayout: React.FC = () => {
         onCreatePostClick={() => {}}
       />
 
-      <Box component="main" sx={{ flexGrow: 1, ml: '240px' }}>
+<Box component="main" sx={{ flexGrow: 1, ml: '240px' }}>
         <Box
           component="header"
           sx={{
@@ -158,4 +157,3 @@ const ScriptoriumLayout: React.FC = () => {
 };
 
 export default ScriptoriumLayout;
-
