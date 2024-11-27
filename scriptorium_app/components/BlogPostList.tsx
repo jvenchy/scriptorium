@@ -46,15 +46,42 @@ interface Post {
   createdAt: string;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 9;
 
 export const BlogPostList: React.FC = () => {
   const { searchParams, setSearchParams, searchResults, setSearchResults, pagination, setPagination } = useSearch();
   const [isInitialMount, setIsInitialMount] = useState(true);
 
-  // Create a stable reference for the fetch function
-  const fetchPosts = useMemo(() => async () => {
+  // Initial fetch on mount
+  useEffect(() => {
+    if (isInitialMount) {
+      fetchPosts();
+      setIsInitialMount(false);
+    }
+  }, [isInitialMount]);
+
+  // Handle search parameter changes
+  useEffect(() => {
+    if (!isInitialMount) {
+      const timeoutId = setTimeout(fetchPosts, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    searchParams.title,
+    searchParams.description,
+    searchParams.tags,
+    searchParams.blogTemplates,
+    searchParams.page,
+    searchParams.sort
+  ]);
+
+  const fetchPosts = async () => {
     try {
+      if (!searchParams.page) {
+        setSearchParams({ page: 1 });
+        return;
+      }
+
       const queryParams = new URLSearchParams({
         page: searchParams.page.toString(),
         limit: searchParams.limit.toString(),
@@ -64,7 +91,7 @@ export const BlogPostList: React.FC = () => {
       if (searchParams.title) queryParams.append('title', searchParams.title);
       if (searchParams.description) queryParams.append('description', searchParams.description);
       if (searchParams.tags) queryParams.append('tags', searchParams.tags);
-      if (searchParams.blogTemplates) queryParams.append('codeTemplateId', searchParams.blogTemplates);
+      if (searchParams.blogTemplates) queryParams.append('templateName', searchParams.blogTemplates);
 
       const response = await fetch(`/api/blogPosts?${queryParams}`);
       if (!response.ok) throw new Error('Failed to fetch posts');
@@ -76,23 +103,7 @@ export const BlogPostList: React.FC = () => {
       console.error('Error fetching posts:', error);
       setSearchResults([]);
     }
-  }, [searchParams, setSearchResults, setPagination]);
-
-  // Initial fetch on mount
-  useEffect(() => {
-    if (isInitialMount) {
-      fetchPosts();
-      setIsInitialMount(false);
-    }
-  }, [isInitialMount, fetchPosts]);
-
-  // Handle subsequent search parameter changes
-  useEffect(() => {
-    if (!isInitialMount) {
-      const timeoutId = setTimeout(fetchPosts, 300);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [fetchPosts, isInitialMount]);
+  };
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setSearchParams({ page: value });

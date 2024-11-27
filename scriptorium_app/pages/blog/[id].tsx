@@ -668,7 +668,7 @@ export default function BlogPostPage() {
 
           {blogPost.codeTemplates.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">Attached Code Template</h2>
+              <h2 className="text-2xl font-bold mb-4">Attached Code Templates</h2>
               <ul className="space-y-4">
                 {blogPost.codeTemplates.map((template) => (
                   <li key={template.id} className="border rounded p-4">

@@ -24,23 +24,60 @@ const SearchBar: React.FC<SearchBarProps> = ({
   contentType,
 }) => {
   const [open, setOpen] = useState(false);
+  const [templateOptions, setTemplateOptions] = useState<Array<{id: string, title: string}>>([]);
   const { searchParams, setSearchParams, setSearchResults, setPagination } = useSearch();
 
   // useEffect(() => {
   //   setSearchParams({ contentType });
   // }, [contentType, setSearchParams]);
 
+  const fetchTemplates = async (searchText: string) => {
+    try {
+      const queryParams = new URLSearchParams({
+        title: searchText,
+        sort: 'id_desc',
+        page: '1',
+        limit: '10'
+      });
+
+      const response = await fetch(`/api/code-templates?${queryParams}`);
+      if (!response.ok) throw new Error("Failed to fetch templates");
+
+      const data = await response.json();
+      setTemplateOptions(data.codeTemplates.map((template: any) => ({
+        id: template.id,
+        title: template.title
+      })));
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      setTemplateOptions([]);
+    }
+  };
+
+  const handleTemplateSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    handleInputChange("blogTemplates", value);
+    await fetchTemplates(value);
+  };
+
   const handleSearch = async () => {
     try {
+      // Reset pagination before searching
+      setSearchParams({ page: 1 });
+      
       const queryParams = new URLSearchParams({
         title: searchParams.title,
         description: searchParams.description,
         tags: searchParams.tags,
         contentType: searchParams.contentType,
         sort: searchParams.sort,
-        page: '1',
+        page: '1', // Always use page 1 for new searches
         limit: searchParams.limit.toString()
       });
+
+      if (searchParams.blogTemplates) {
+        queryParams.append('templateName', searchParams.blogTemplates);
+      }
 
       const response = await fetch(`/api/blogPosts?${queryParams}`);
       if (!response.ok) throw new Error("Failed to fetch search results");
@@ -56,7 +93,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setSearchParams({ ...searchParams, [field]: value });
+    // Reset pagination when any search field changes
+    setSearchParams({ 
+      [field]: value,
+      page: 1 
+    });
   };
 
   const handleClose = () => {
@@ -152,10 +193,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
               fullWidth
               label="Templates"
               variant="outlined"
-              placeholder="Separate templates with commas"
               value={searchParams.blogTemplates}
-              onChange={(e) => handleInputChange("blogTemplates", e.target.value)}
-              helperText="Example: blog, portfolio, dashboard"
+              onChange={handleTemplateSearchChange}
+              helperText="Search by template name"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               select

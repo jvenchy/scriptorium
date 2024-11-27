@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   try {
     const {
-      author,        // Search by author name
+      author,        // This will now be authorId
       title,         // Search by title
       explanation,   // Search by explanation
       codeSnippet,   // Search by code snippet
@@ -28,24 +28,26 @@ export default async function handler(req, res) {
       AND: [] // Initialize AND array for combining conditions
     };
 
-    // Author search (searches first and last name)
+    // Author search (now using authorId as integer)
     if (author) {
       where.AND.push({
-        author: {
-          OR: [
-            { firstName: { contains: author } },
-            { lastName: { contains: author } }
-          ]
+        authorId: parseInt(author)  // Convert string to integer
+      });
+    }
+
+    // Title search - modified to search from the beginning of the title
+    if (title) {
+      where.AND.push({
+        title: {
+          startsWith: title,
         }
       });
     }
 
-    // Title search
-    if (title) {
+    // If no title is provided but author is specified, return all templates for that author
+    if (!title && author) {
       where.AND.push({
-        title: {
-          contains: title
-        }
+        authorId: parseInt(author)
       });
     }
 
@@ -86,20 +88,20 @@ export default async function handler(req, res) {
       delete where.AND;
     }
 
-    // Define sort order
+    // Define sort order (fix the createdAt issue)
     let orderBy = {};
     switch (sort) {
       case 'title':
         orderBy = { title: 'asc' };
         break;
       case 'createdAt_desc':
-        orderBy = { createdAt: 'desc' };
+        orderBy = { id: 'desc' }; // Using id as a proxy for creation time
         break;
       case 'createdAt_asc':
-        orderBy = { createdAt: 'asc' };
+        orderBy = { id: 'asc' };
         break;
       default:
-        orderBy = { createdAt: 'desc' };
+        orderBy = { id: 'desc' };
     }
 
     // Get total count for pagination
@@ -174,7 +176,10 @@ export default async function handler(req, res) {
       }
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Detailed error:', error);
+    return res.status(500).json({ 
+      error: "Internal server error",
+      details: error.message 
+    });
   }
 }
