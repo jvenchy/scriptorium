@@ -75,11 +75,19 @@ export default async function handler(req, res) {
           })),
         },
       },
-      select: { id: true },
+      select: { 
+        id: true,
+        createdAt: true,
+        updatedAt: true 
+      },
     });
 
-    // Respond with the updated code template ID
-    return res.status(200).json({ codeTemplateId: updatedCodeTemplate.id });
+    // Respond with the updated code template ID and timestamps
+    return res.status(200).json({
+      codeTemplateId: updatedCodeTemplate.id,
+      createdAt: updatedCodeTemplate.createdAt,
+      updatedAt: updatedCodeTemplate.updatedAt
+    });
 
   } catch (error) {
     console.error(error);
