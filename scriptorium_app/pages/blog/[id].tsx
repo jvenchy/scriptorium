@@ -482,7 +482,7 @@ export default function BlogPostPage() {
             <ul className="space-y-4">
               {blogPost.codeTemplates.map((template) => (
                 <li key={template.id} className="border rounded p-4">
-                  <Link href={`/editor/${template.id}`} className="text-blue-500 hover:underline">
+                  <Link href={`/editor?template=${template.id}`} className="text-blue-500 hover:underline">
                     <h3 className="text-xl font-semibold mb-2">{template.title}</h3>
                   </Link>
                   <p className="text-gray-600 mb-2">{template.explanation}</p>
