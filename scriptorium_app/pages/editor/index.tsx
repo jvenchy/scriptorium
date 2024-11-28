@@ -274,7 +274,6 @@ export default function EditorPage() {
         onCreatePostClick={() => router.push('/createPost')}
       />
       <div className="flex-grow container mx-auto p-8 ml-60">
-<<<<<<< Updated upstream
         {user && (
           <div className="mb-6 flex items-center justify-end space-x-4">
             <ProfileComponent />
@@ -287,20 +286,6 @@ export default function EditorPage() {
           className="text-3xl font-helvetica font-bold mb-6"
           isEditing={isAuthor}
         />
-=======
-        <div className="mb-6">
-          <label htmlFor="template-title" className="block text-sm font-medium text-gray-700 mb-2">
-            Template Title
-          </label>
-          <EditableField
-            id="template-title"
-            value={title}
-            onChange={setTitle}
-            className="text-3xl font-helvetica font-bold mb-6"
-            isEditing={isAuthor}
-          />
-        </div>
->>>>>>> Stashed changes
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
