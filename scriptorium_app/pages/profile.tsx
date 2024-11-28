@@ -24,6 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { Navbar } from '@/components/NavBar';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,6 +51,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function ProfilePage() {
+  const { theme } = useTheme();
   const { user, logout, updateProfile } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState({
@@ -129,7 +131,12 @@ export default function ProfilePage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      bgcolor: theme.colors.background,
+      display: 'flex',
+      transition: 'all 0.3s ease'
+    }}>
       <Navbar
         isAuthenticated={!!user}
         onAuthClick={() => {}}
@@ -139,18 +146,38 @@ export default function ProfilePage() {
       />
       
       <Box component="main" sx={{ flexGrow: 1, ml: '240px', p: 4 }}>
-        <Card sx={{ maxWidth: 800, mx: 'auto', mb: 4 }}>
+        <Card sx={{ 
+          maxWidth: 800, 
+          mx: 'auto', 
+          mb: 4,
+          bgcolor: theme.colors.cardBackground,
+          borderColor: theme.colors.border,
+          transition: 'all 0.3s ease'
+        }}>
           <CardHeader
             title={
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h5" component="h1" sx={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                <Typography 
+                  variant="h5" 
+                  component="h1" 
+                  sx={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    color: theme.colors.text 
+                  }}
+                >
                   Profile
                 </Typography>
                 <Stack direction="row" spacing={2}>
                   <Button
-                    startIcon={<EditIcon />}
+                    startIcon={<EditIcon sx={{ color: theme.isDarkMode ? '#fff' : undefined }} />}
                     onClick={() => setIsEditing(!isEditing)}
                     variant="contained"
+                    sx={{
+                      bgcolor: theme.isDarkMode ? '#4a4b5d' : undefined,
+                      '&:hover': {
+                        bgcolor: theme.isDarkMode ? '#5a5b6d' : undefined,
+                      }
+                    }}
                   >
                     Edit Profile
                   </Button>
@@ -158,6 +185,10 @@ export default function ProfilePage() {
                     onClick={handleLogout}
                     variant="outlined"
                     color="error"
+                    sx={{
+                      borderColor: theme.isDarkMode ? '#f44336' : undefined,
+                      color: theme.isDarkMode ? '#f44336' : undefined,
+                    }}
                   >
                     Logout
                   </Button>
@@ -172,10 +203,22 @@ export default function ProfilePage() {
                 sx={{ width: 100, height: 100 }}
               />
               <Box>
-                <Typography variant="h6" sx={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                    color: theme.colors.text 
+                  }}
+                >
                   {profile.firstName} {profile.lastName}
                 </Typography>
-                <Typography color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                <Typography 
+                  sx={{ 
+                    fontFamily: 'monospace',
+                    color: theme.colors.text,
+                    opacity: 0.7
+                  }}
+                >
                   {profile.email}
                 </Typography>
               </Box>
@@ -190,18 +233,75 @@ export default function ProfilePage() {
                     onChange={(e) => setEditedProfile({...editedProfile, avatar: e.target.value})}
                     fullWidth
                     helperText="Enter the URL of your profile picture"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
                   <TextField
                     label="First Name"
                     value={editedProfile.firstName}
                     onChange={(e) => setEditedProfile({...editedProfile, firstName: e.target.value})}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
                   <TextField
                     label="Last Name"
                     value={editedProfile.lastName}
                     onChange={(e) => setEditedProfile({...editedProfile, lastName: e.target.value})}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
                   <TextField
                     label="Email"
@@ -209,12 +309,50 @@ export default function ProfilePage() {
                     value={editedProfile.email}
                     onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
                   <TextField
                     label="Phone Number"
                     value={editedProfile.phoneNumber}
                     onChange={(e) => setEditedProfile({...editedProfile, phoneNumber: e.target.value})}
                     fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
                   <TextField
                     label="New Password"
@@ -222,16 +360,48 @@ export default function ProfilePage() {
                     onChange={(e) => setEditedProfile({...editedProfile, password: e.target.value})}
                     fullWidth
                     helperText="Leave blank to keep current password"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                        '&:hover fieldset': {
+                          borderColor: theme.colors.border,
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiInputBase-input': {
+                        color: theme.colors.text,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: theme.colors.text,
+                      }
+                    }}
                   />
-                  <Button type="submit" variant="contained">
+                  <Button 
+                    type="submit" 
+                    variant="contained"
+                    sx={{
+                      bgcolor: theme.isDarkMode ? '#4a4b5d' : undefined,
+                      '&:hover': {
+                        bgcolor: theme.isDarkMode ? '#5a5b6d' : undefined,
+                      }
+                    }}
+                  >
                     Save Changes
                   </Button>
                 </Stack>
               </form>
             ) : (
               <Box>
-                <Typography sx={{ mb: 1 }}><strong>Phone:</strong> {profile.phoneNumber}</Typography>
-                <Typography><strong>Administrator:</strong> {profile.isAdministrator ? 'Yes' : 'No'}</Typography>
+                <Typography sx={{ mb: 1, color: theme.colors.text }}>
+                  <strong>Phone:</strong> {profile.phoneNumber}
+                </Typography>
+                <Typography sx={{ color: theme.colors.text }}>
+                  <strong>Administrator:</strong> {profile.isAdministrator ? 'Yes' : 'No'}
+                </Typography>
               </Box>
             )}
           </CardContent>
