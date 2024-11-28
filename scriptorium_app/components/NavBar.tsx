@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </ListItem>
 
         {isAuthenticated ? (
-          <Link href="/my-templates" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link href="/myTemplates" style={{ textDecoration: 'none', color: 'inherit' }}>
             <ListItemButton>
               <ListItemIcon>
                 <BookmarkIcon />
