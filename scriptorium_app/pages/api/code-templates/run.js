@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const supportedLanguages = ['python', 'javascript', 'c', 'cpp', 'java', 'ruby', 'php', 'perl', 'bash', 'lua'];
+export const SUPPORTED_LANGUAGES = supportedLanguages;
 
 const extensions = {
   python: 'py',

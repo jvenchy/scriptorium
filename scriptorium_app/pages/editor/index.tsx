@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import { Navbar } from '@/components/NavBar'
 import ProfileComponent from '@/components/ProfileComponent'
+import { Modal, Box, Typography, Button, Stack } from '@mui/material'
 
 interface CodeTemplate {
   id: number
@@ -23,7 +24,7 @@ interface CodeTemplate {
   title: string
   explanation: string
   forkedFromId: number | null
-  authorId: number
+  authorId: number | null
   language: string
   tags: { id: number; name: string }[]
   author: {
@@ -39,18 +40,18 @@ interface CodeTemplate {
 const DEFAULT_TEMPLATE = {
   id: 0,
   codeSnippet: 'console.log("Hello World");',
-  title: 'Simple JavaScript Console Log',
-  explanation: 'This code prints Hello World to the console.',
+  title: 'Untitled Code Template',
+  explanation: 'Add a description here.',
   forkedFromId: null,
-  authorId: 1,
+  authorId: null,
   language: 'JavaScript',
-  tags: [{ id: 1, name: 'JavaScript' }, { id: 2, name: 'Beginner' }, { id: 3, name: 'Example' }],
+  tags: [],
   author: {
-    id: 1,
-    firstName: 'Anonymous',
-    lastName: 'Coder',
-    email: 'john.doe@example.com',
-    avatar: '/broken-image.jpg',
+    id: 0,
+    firstName: '',
+    lastName: '',
+    email: '',
+    avatar: null,
   },
   forks: []
 }
@@ -96,8 +97,10 @@ export default function EditorPage() {
   const [explanation, setExplanation] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [isRunning, setIsRunning] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authAction, setAuthAction] = useState<'save' | 'fork' | null>(null)
 
-  const isAuthor = user?.id === template?.authorId
+  const isAuthor = !templateId || user?.id === template?.authorId
 
   useEffect(() => {
     if (templateId) {
@@ -151,8 +154,16 @@ export default function EditorPage() {
     }
   }
 
+  const handleAuthRequired = (action: 'save' | 'fork') => {
+    setAuthAction(action)
+    setShowAuthModal(true)
+  }
+
   const saveTemplate = async () => {
-    if (!user) return
+    if (!user) {
+      handleAuthRequired('save')
+      return
+    }
 
     if (template && template.id !== 0) {
       // Update existing template
@@ -207,6 +218,11 @@ export default function EditorPage() {
   }
 
   const forkTemplate = async () => {
+    if (!user) {
+      handleAuthRequired('fork')
+      return
+    }
+
     if (!template || !user) return
 
     const response = await fetch('/api/code-templates/create', {
@@ -259,6 +275,11 @@ export default function EditorPage() {
       setCode(HELLO_WORLD_PROGRAMS[newLanguage as keyof typeof HELLO_WORLD_PROGRAMS]);
     }
   };
+
+  const closeAuthModal = () => {
+    setShowAuthModal(false)
+    setAuthAction(null)
+  }
 
   if (!template) return <div>Loading...</div>
 
@@ -332,6 +353,45 @@ export default function EditorPage() {
           </div>
         </div>
       </div>
+      
+      <Modal
+        open={showAuthModal}
+        onClose={closeAuthModal}
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Box
+          sx={{
+            width: 400,
+            bgcolor: 'background.paper',
+            color: 'black',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Sign In Required
+          </Typography>
+          <Typography sx={{ mb: 3 }}>
+            You need to sign in to {authAction === 'save' ? 'save templates' : 'fork this template'}.
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button 
+              variant="contained" 
+              onClick={() => router.push('/auth')}
+            >
+              Sign In
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={closeAuthModal}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
     </div>
   )
 }
