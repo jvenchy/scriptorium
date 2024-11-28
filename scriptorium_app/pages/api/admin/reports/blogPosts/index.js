@@ -36,7 +36,11 @@ const getReportedBlogPosts = async (req, res) => {
 
     // fetch reported blog posts, sorted by the specified field, with pagination
     const reportedBlogPosts = await prisma.blogPost.findMany({
-      where: { numReports: { gt: 0 } },
+      where: {
+        reports: {
+          some: {}
+        }
+      },
       orderBy: sortField,
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,

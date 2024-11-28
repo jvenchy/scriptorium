@@ -175,12 +175,14 @@ export default function AdminReportsPage() {
                       </div>
                     )}
                   </Link>
-                  <button
-                    onClick={() => hideItem(post.id)}
-                    className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    {post.isVisible ? 'Hide' : 'Hidden'} Blog Post
-                  </button>
+                  {post.isVisible && (
+                    <button
+                      onClick={() => hideItem(post.id)}
+                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Hide Blog Post
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -216,12 +218,14 @@ export default function AdminReportsPage() {
                       </ul>
                     </div>
                   )}
-                  <button
-                    onClick={() => hideItem(comment.id)}
-                    className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    {comment.isVisible ? 'Hide' : 'Hidden'} Comment
-                  </button>
+                  {comment.isVisible && (
+                    <button
+                      onClick={() => hideItem(comment.id)}
+                      className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Hide Comment
+                    </button>
+                  )}
                 </div>
               </div>
             ))
