@@ -28,6 +28,7 @@ export default async function handler(req, res) {
 
     // Build where clause based on filters
     const where = {
+      isVisible: true,
       AND: [] // Initialize AND array for combining conditions
     };
 
