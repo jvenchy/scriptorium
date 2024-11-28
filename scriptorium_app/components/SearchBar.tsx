@@ -15,6 +15,7 @@ import {
 import { Search as SearchIcon, Close as CloseIcon } from "@mui/icons-material";
 import { useSearch } from '@/contexts/SearchContext';
 import type { SearchParams } from '@/contexts/SearchContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SearchBarProps {
   contentType: "templates" | "blogs";
@@ -26,6 +27,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [open, setOpen] = useState(false);
   const [templateOptions, setTemplateOptions] = useState<Array<{id: string, title: string}>>([]);
   const { searchParams, setSearchParams, setSearchResults, setPagination } = useSearch();
+  const { theme } = useTheme();
 
   const handleClose = () => setOpen(false);
 
@@ -75,7 +77,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <>
-      <IconButton onClick={() => setOpen(true)}>
+      <IconButton onClick={() => setOpen(true)} sx={{ color: theme.colors.iconColor }}>
         <SearchIcon />
       </IconButton>
 
@@ -84,12 +86,28 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onClose={handleClose}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: theme.colors.cardBackground,
+            color: theme.colors.text,
+            transition: 'all 0.3s ease',
+          }
+        }}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }}>
+        <DialogTitle sx={{ 
+          m: 0, 
+          p: 2,
+          color: theme.colors.text,
+        }}>
           Search {contentType === 'blogs' ? 'Blog Posts' : 'Templates'}
           <IconButton
             onClick={handleClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{ 
+              position: 'absolute', 
+              right: 8, 
+              top: 8,
+              color: theme.colors.iconColor 
+            }}
           >
             <CloseIcon />
           </IconButton>
@@ -109,6 +127,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   </InputAdornment>
                 ),
               }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.colors.text,
+                },
+                '& .MuiInputBase-input': {
+                  color: theme.colors.text,
+                },
+              }}
             />
             
             <TextField
@@ -119,6 +153,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
               rows={2}
               value={searchParams.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.colors.text,
+                },
+                '& .MuiInputBase-input': {
+                  color: theme.colors.text,
+                },
+              }}
             />
 
             {contentType === 'templates' && (
@@ -131,6 +181,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 value={searchParams.codeSnippet || ''}
                 onChange={(e) => handleInputChange("codeSnippet", e.target.value)}
                 placeholder="Search within template code"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: theme.colors.text,
+                  },
+                  '& .MuiInputBase-input': {
+                    color: theme.colors.text,
+                  },
+                }}
               />
             )}
 
@@ -142,6 +208,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
               value={searchParams.tags}
               onChange={(e) => handleInputChange("tags", e.target.value)}
               helperText="Example: javascript, react, typescript"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                  '&:hover fieldset': {
+                    borderColor: theme.colors.border,
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.colors.text,
+                },
+                '& .MuiInputBase-input': {
+                  color: theme.colors.text,
+                },
+              }}
             />
 
             {contentType === 'blogs' && (
@@ -159,6 +241,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     </InputAdornment>
                   ),
                 }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: theme.colors.text,
+                  },
+                  '& .MuiInputBase-input': {
+                    color: theme.colors.text,
+                  },
+                }}
               />
             )}
 
@@ -171,6 +269,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 onChange={(e) => setSearchParams({ 
                   sort: e.target.value as SearchParams['sort'] 
                 })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: theme.colors.text,
+                  },
+                  '& .MuiInputBase-input': {
+                    color: theme.colors.text,
+                  },
+                }}
               >
                 <MenuItem value="createdAt_desc">Newest First</MenuItem>
                 <MenuItem value="createdAt_asc">Oldest First</MenuItem>
@@ -188,6 +302,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 onChange={(e) => setSearchParams({ 
                   sort: e.target.value as SearchParams['sort'] 
                 })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme.colors.border,
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: theme.colors.text,
+                  },
+                  '& .MuiInputBase-input': {
+                    color: theme.colors.text,
+                  },
+                }}
               >
                 <MenuItem value="createdAt_desc">Newest First</MenuItem>
                 <MenuItem value="createdAt_asc">Oldest First</MenuItem>
@@ -200,7 +330,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onClick={handleClose}
             sx={{ 
               textTransform: 'none',
-              color: 'text.secondary'
+              color: theme.colors.text,
+              borderColor: theme.colors.border,
+              '&:hover': {
+                backgroundColor: theme.colors.hover,
+              }
             }}
           >
             Cancel
@@ -210,7 +344,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onClick={handleSearch}
             sx={{ 
               textTransform: 'none',
-              px: 3
+              px: 3,
+              bgcolor: theme.isDarkMode ? '#4a4b5d' : undefined,
+              '&:hover': {
+                bgcolor: theme.isDarkMode ? '#5a5b6d' : undefined,
+              }
             }}
           >
             Search

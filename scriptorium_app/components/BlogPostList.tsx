@@ -17,6 +17,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import LinkIcon from '@mui/icons-material/Link'; 
 import { useSearch } from '@/contexts/SearchContext';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Post {
   id: number;
@@ -49,6 +50,7 @@ interface Post {
 const ITEMS_PER_PAGE = 9;
 
 export const BlogPostList: React.FC = () => {
+  const { theme } = useTheme();
   const { searchParams, setSearchParams, searchResults, setSearchResults, pagination, setPagination } = useSearch();
   const [isInitialMount, setIsInitialMount] = useState(true);
 
@@ -108,7 +110,11 @@ export const BlogPostList: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: 3,
+      bgcolor: theme.colors.background,
+      transition: 'all 0.3s ease'
+    }}>
       <Grid container spacing={3}>
         {searchResults.length > 0 ? (
           searchResults.map((post: Post) => (
@@ -117,7 +123,17 @@ export const BlogPostList: React.FC = () => {
                 href={`/blog/${post.id}`} 
                 style={{ textDecoration: 'none' }}
               >
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Card sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  bgcolor: theme.colors.cardBackground,
+                  borderColor: theme.colors.border,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: theme.colors.hover,
+                  }
+                }}>
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Typography 
                       variant="h6" 
@@ -125,7 +141,8 @@ export const BlogPostList: React.FC = () => {
                       sx={{ 
                         fontFamily: 'Helvetica, Arial, sans-serif',
                         fontWeight: 'bold',
-                        mb: 1
+                        mb: 1,
+                        color: theme.colors.text
                       }}
                     >
                       {post.title}
@@ -133,7 +150,6 @@ export const BlogPostList: React.FC = () => {
 
                     <Typography 
                       variant="body2" 
-                      color="text.primary"
                       sx={{ 
                         fontFamily: 'Helvetica, Arial, sans-serif',
                         height: '2em',
@@ -142,14 +158,14 @@ export const BlogPostList: React.FC = () => {
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
+                        color: theme.colors.text
                       }}
                     >
-                      // {post.author.firstName} {post.author.lastName}
+                      {post.author.firstName} {post.author.lastName}
                     </Typography>
                     
                     <Typography 
                       variant="body2" 
-                      color="text.secondary"
                       sx={{ 
                         fontFamily: 'monospace',
                         mb: 2,
@@ -159,6 +175,7 @@ export const BlogPostList: React.FC = () => {
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
+                        color: theme.colors.text
                       }}
                     >
                       {post.description}
@@ -166,7 +183,16 @@ export const BlogPostList: React.FC = () => {
                     
                     <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
                       {post.tags.map((tag: {id: number; name: string}) => (
-                        <Chip key={tag.id} label={tag.name} size="small" />
+                        <Chip 
+                          key={tag.id} 
+                          label={tag.name} 
+                          size="small"
+                          sx={{
+                            bgcolor: theme.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : undefined,
+                            color: theme.colors.text,
+                            borderColor: theme.colors.border
+                          }}
+                        />
                       ))}
                     </Stack>
                     
@@ -194,25 +220,31 @@ export const BlogPostList: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
                       <Box>
                         <Tooltip title="Upvotes">
-                          <IconButton size="small">
+                          <IconButton size="small" sx={{ color: theme.colors.iconColor }}>
                             <ThumbUpIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.upvotes || 0}</Typography>
+                        <Typography variant="caption" sx={{ mr: 1, color: theme.colors.text }}>
+                          {post.stats?.upvotes || 0}
+                        </Typography>
                         <Tooltip title="Downvotes">
-                          <IconButton size="small">
+                          <IconButton size="small" sx={{ color: theme.colors.iconColor }}>
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.downvotes || 0}</Typography>
+                        <Typography variant="caption" sx={{ mr: 1, color: theme.colors.text }}>
+                          {post.stats?.downvotes || 0}
+                        </Typography>
                         <Tooltip title="Comments">
-                          <IconButton size="small">
+                          <IconButton size="small" sx={{ color: theme.colors.iconColor }}>
                             <CommentIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption">{post.stats?.comments || 0}</Typography>
+                        <Typography variant="caption" sx={{ color: theme.colors.text }}>
+                          {post.stats?.comments || 0}
+                        </Typography>
                       </Box>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{ color: theme.colors.text }}>
                         {new Date(post.createdAt).toLocaleDateString()}
                       </Typography>
                     </Box>
@@ -223,7 +255,10 @@ export const BlogPostList: React.FC = () => {
           ))
         ) : (
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ textAlign: 'center' }}>
+            <Typography variant="body1" sx={{ 
+              textAlign: 'center',
+              color: theme.colors.text 
+            }}>
               No posts found
             </Typography>
           </Grid>
@@ -237,6 +272,12 @@ export const BlogPostList: React.FC = () => {
             page={searchParams.page}
             onChange={handlePageChange}
             color="primary"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: theme.colors.text,
+                borderColor: theme.colors.border,
+              }
+            }}
           />
         </Box>
       )}

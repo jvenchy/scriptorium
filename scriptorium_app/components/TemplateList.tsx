@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { useSearch } from '@/contexts/SearchContext';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Template {
   id: number;
@@ -35,6 +36,7 @@ interface Template {
 const ITEMS_PER_PAGE = 10;
 
 export const TemplateList: React.FC = () => {
+  const { theme } = useTheme();
   const { searchParams, setSearchParams, searchResults, setSearchResults, pagination, setPagination } = useSearch();
   const [isInitialMount, setIsInitialMount] = useState(true);
 
@@ -101,7 +103,11 @@ export const TemplateList: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: 3,
+      bgcolor: theme.colors.background,
+      transition: 'all 0.3s ease'
+    }}>
       <Grid container spacing={3}>
         {searchResults.length > 0 ? (
           searchResults.map((template) => (
@@ -116,10 +122,15 @@ export const TemplateList: React.FC = () => {
                     display: 'flex', 
                     flexDirection: 'column',
                     cursor: 'pointer',
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    bgcolor: theme.colors.cardBackground,
+                    borderColor: theme.colors.border,
+                    transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'scale(1.03)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                      boxShadow: theme.isDarkMode 
+                        ? '0 4px 20px rgba(0,0,0,0.4)'
+                        : '0 4px 20px rgba(0,0,0,0.12)',
+                      bgcolor: theme.colors.hover,
                     }
                   }}
                 >
@@ -130,7 +141,8 @@ export const TemplateList: React.FC = () => {
                       sx={{ 
                         fontFamily: 'Helvetica, Arial, sans-serif',
                         fontWeight: 'bold',
-                        mb: 1
+                        mb: 1,
+                        color: theme.colors.text
                       }}
                     >
                       {template.title}
@@ -138,7 +150,6 @@ export const TemplateList: React.FC = () => {
 
                     <Typography 
                       variant="body2" 
-                      color="text.secondary"
                       sx={{ 
                         fontFamily: 'monospace',
                         mb: 2,
@@ -148,6 +159,7 @@ export const TemplateList: React.FC = () => {
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
+                        color: theme.colors.text
                       }}
                     >
                       {template.explanation}
@@ -155,11 +167,25 @@ export const TemplateList: React.FC = () => {
                     
                     <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
                       {template.tags.map((tag: {id: number; name: string}) => (
-                        <Chip key={tag.id} label={tag.name} size="small" />
+                        <Chip 
+                          key={tag.id} 
+                          label={tag.name} 
+                          size="small"
+                          sx={{
+                            bgcolor: theme.isDarkMode ? 'rgba(255, 255, 255, 0.1)' : undefined,
+                            color: theme.colors.text,
+                            borderColor: theme.colors.border
+                          }}
+                        />
                       ))}
                     </Stack>
                     
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: theme.colors.text
+                      }}
+                    >
                       {new Date(template.createdAt).toLocaleDateString()}
                     </Typography>
                   </CardContent>
@@ -169,7 +195,13 @@ export const TemplateList: React.FC = () => {
           ))
         ) : (
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ textAlign: 'center' }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                textAlign: 'center',
+                color: theme.colors.text 
+              }}
+            >
               No templates found
             </Typography>
           </Grid>
@@ -183,6 +215,12 @@ export const TemplateList: React.FC = () => {
             page={searchParams.page}
             onChange={handlePageChange}
             color="primary"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: theme.colors.text,
+                borderColor: theme.colors.border,
+              }
+            }}
           />
         </Box>
       )}
