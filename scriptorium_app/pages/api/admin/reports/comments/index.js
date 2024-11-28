@@ -36,7 +36,11 @@ const getReportedComments = async (req, res) => {
 
     // fetch reported comments, sorted by the specified field, with pagination
     const reportedComments = await prisma.comment.findMany({
-      where: { numReports: { gt: 0 } },
+      where: {
+        reports: {
+          some: {} // This ensures the comment has at least one report
+        }
+      },
       orderBy: sortField,
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,

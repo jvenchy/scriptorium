@@ -78,7 +78,9 @@ export default async function handler(req, res) {
       author: blogPost.author,
       tags: blogPost.tags,
       codeTemplates: blogPost.codeTemplates,
-      comments: blogPost.comments
+      comments: blogPost.comments,
+      canEdit: blogPost.canEdit,
+      isVisible: blogPost.isVisible
     };
 
     return res.status(200).json(formattedResponse);

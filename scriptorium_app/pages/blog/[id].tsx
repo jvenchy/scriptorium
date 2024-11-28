@@ -55,6 +55,7 @@ interface Comment {
   upvotes: number
   downvotes: number
   canEdit: boolean
+  isVisible: boolean
 }
 
 interface BlogPost {
@@ -69,6 +70,8 @@ interface BlogPost {
   comments: Comment[]
   upvotes: number
   downvotes: number
+  canEdit: boolean
+  isVisible: boolean
 }
 
 interface Template {
@@ -373,141 +376,150 @@ export default function BlogPostPage() {
   }
 
   const renderComments = (comments: Comment[], level = 0) => {
-    return comments.map((comment) => (
-      <li 
-        key={comment.id} 
-        className={`border-b pb-4 ${level > 0 ? 'ml-8' : ''}`}
-        ref={el => {
-          commentRefs.current[comment.id] = el;
-        }}
-      >
-        <div className="flex items-center mb-2">
-          <Avatar
-            src={comment.author.avatar || defaultAvatar}
-            alt={`${comment.author.firstName} ${comment.author.lastName}`}
-            sx={{ width: 32, height: 32, mr: 2 }}
-          />
-          <div>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 'bold', mr: 2 }}
-            >
-              {`${comment.author.firstName} ${comment.author.lastName}`}
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-            >
-              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-            </Typography>
+    return comments.map((comment) => {
+      if (!comment.isVisible && (!user || user.id !== comment.author.id)) {
+        return null;
+      }
+
+      return (
+        <li 
+          key={comment.id} 
+          className={`border-b pb-4 ${level > 0 ? 'ml-8' : ''} ${!comment.isVisible ? 'opacity-50' : ''}`}
+          ref={el => {
+            commentRefs.current[comment.id] = el;
+          }}
+        >
+          <div className="flex items-center mb-2">
+            <Avatar
+              src={comment.author.avatar || defaultAvatar}
+              alt={`${comment.author.firstName} ${comment.author.lastName}`}
+              sx={{ width: 32, height: 32, mr: 2 }}
+            />
+            <div>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 'bold', mr: 2 }}
+              >
+                {`${comment.author.firstName} ${comment.author.lastName}`}
+                {!comment.isVisible && (
+                  <span className="ml-2 text-red-500 text-sm">(Hidden)</span>
+                )}
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+              >
+                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+              </Typography>
+            </div>
           </div>
-        </div>
-        {comment.parentCommentId && (
-          <Typography variant="caption" color="text.secondary" className="mb-2">
-            replying to{' '}
-            <button 
-              onClick={() => scrollToComment(comment.parentCommentId!)}
-              className="text-blue-500 hover:underline"
-            >
-              {comments.find(c => c.id === comment.parentCommentId)?.author.firstName || 'author'}
-            </button>
-          </Typography>
-        )}
-        {editingCommentId === comment.id ? (
-          <>
-            <CommentForm
-              onSubmit={(content) => editComment(comment.id, content)}
-              initialValue={comment.content}
-              buttonText="Save Edit"
-            />
-            <button
-              onClick={() => setEditingCommentId(null)}
-              className="mt-2 text-red-500 hover:underline"
-            >
-              Cancel Edit
-            </button>
-          </>
-        ) : (
-          <Typography variant="body2" className="mb-2">
-            {comment.content}
-          </Typography>
-        )}
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => voteComment(comment.id, 'upvote')}
-            variant="text"
-            color="primary"
-            sx={{
-              textTransform: 'none',
-              '&:hover': {
-                color: 'primary.dark',
-              },
-            }}
-            startIcon={<ThumbUpIcon />}
-          >
-            {comment.upvotes}
-          </Button>
-          <Button
-            onClick={() => voteComment(comment.id, 'downvote')}
-            variant="text"
-            color="error"
-            sx={{
-              textTransform: 'none',
-              '&:hover': {
-                color: 'error.dark',
-              },
-            }}
-            startIcon={<ThumbDownIcon />}
-          >
-            {comment.downvotes}
-          </Button>
-          {replyingTo === comment.id ? (
-            <CommentForm
-              onSubmit={(content) => createComment(content, comment.id)}
-              placeholder="Write a reply..."
-              buttonText="Reply"
-            />
-          ) : (
-            <button
-              onClick={() => setReplyingTo(comment.id)}
-              className="text-blue-500 hover:underline"
-            >
-              Reply
-            </button>
-          )}
-          {comment.canEdit && comment.author.id === user?.id && (
-            <>
-              <button
-                onClick={() => setEditingCommentId(comment.id)}
+          {comment.parentCommentId && (
+            <Typography variant="caption" color="text.secondary" className="mb-2">
+              replying to{' '}
+              <button 
+                onClick={() => scrollToComment(comment.parentCommentId!)}
                 className="text-blue-500 hover:underline"
               >
-                Edit
+                {comments.find(c => c.id === comment.parentCommentId)?.author.firstName || 'author'}
               </button>
+            </Typography>
+          )}
+          {editingCommentId === comment.id ? (
+            <>
+              <CommentForm
+                onSubmit={(content) => editComment(comment.id, content)}
+                initialValue={comment.content}
+                buttonText="Save Edit"
+              />
               <button
-                onClick={() => deleteComment(comment.id)}
-                className="text-red-500 hover:underline"
+                onClick={() => setEditingCommentId(null)}
+                className="mt-2 text-red-500 hover:underline"
               >
-                Delete
+                Cancel Edit
               </button>
             </>
+          ) : (
+            <Typography variant="body2" className="mb-2">
+              {comment.content}
+            </Typography>
           )}
-          <button
-            onClick={() => {
-              setReportTarget({ type: 'comment', id: comment.id })
-              setIsReportModalOpen(true)
-            }}
-            className="text-red-500 hover:underline"
-          >
-            Report
-          </button>
-        </div>
-        {comment.replies && comment.replies.length > 0 && (
-          <ul className="mt-4">
-            {renderComments(comment.replies, level + 1)}
-          </ul>
-        )}
-      </li>
-    ))
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => voteComment(comment.id, 'upvote')}
+              variant="text"
+              color="primary"
+              sx={{
+                textTransform: 'none',
+                '&:hover': {
+                  color: 'primary.dark',
+                },
+              }}
+              startIcon={<ThumbUpIcon />}
+            >
+              {comment.upvotes}
+            </Button>
+            <Button
+              onClick={() => voteComment(comment.id, 'downvote')}
+              variant="text"
+              color="error"
+              sx={{
+                textTransform: 'none',
+                '&:hover': {
+                  color: 'error.dark',
+                },
+              }}
+              startIcon={<ThumbDownIcon />}
+            >
+              {comment.downvotes}
+            </Button>
+            {replyingTo === comment.id ? (
+              <CommentForm
+                onSubmit={(content) => createComment(content, comment.id)}
+                placeholder="Write a reply..."
+                buttonText="Reply"
+              />
+            ) : (
+              <button
+                onClick={() => setReplyingTo(comment.id)}
+                className="text-blue-500 hover:underline"
+              >
+                Reply
+              </button>
+            )}
+            {comment.canEdit && comment.author.id === user?.id && (
+              <>
+                <button
+                  onClick={() => setEditingCommentId(comment.id)}
+                  className="text-blue-500 hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteComment(comment.id)}
+                  className="text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => {
+                setReportTarget({ type: 'comment', id: comment.id })
+                setIsReportModalOpen(true)
+              }}
+              className="text-red-500 hover:underline"
+            >
+              Report
+            </button>
+          </div>
+          {comment.replies && comment.replies.length > 0 && (
+            <ul className="mt-4">
+              {renderComments(comment.replies, level + 1)}
+            </ul>
+          )}
+        </li>
+      );
+    }).filter(Boolean);
   }
 
   const voteBlogPost = async (voteType: 'upvote' | 'downvote') => {
@@ -647,10 +659,17 @@ export default function BlogPostPage() {
                   className="text-4xl font-bold"
                 />
               ) : (
-                <h1 className="text-4xl font-bold">{blogPost.title}</h1>
+                <div>
+                  <h1 className="text-4xl font-bold">{blogPost.title}</h1>
+                  {!blogPost.isVisible && (
+                    <div className="mt-2 p-2 bg-red-100 text-red-700 rounded">
+                      This post has been hidden by moderators
+                    </div>
+                  )}
+                </div>
               )}
               <div className="space-x-2">
-                {user?.id === blogPost.author.id && (
+                {user?.id === blogPost.author.id && blogPost.canEdit && (
                   <>
                     <Button
                       onClick={() => setIsEditMode(!isEditMode)}
