@@ -12,7 +12,7 @@ import SaveButton from '@/components/SaveButton'
 import CommentForm from '@/components/CommentForm'
 import ReportModal from '@/components/ReportModal'
 import { useAuth } from '@/contexts/AuthContext'
-import { Avatar, Typography, Button } from '@mui/material'
+import { Avatar, Typography, Button, Alert, Snackbar } from '@mui/material'
 import { Navbar } from '@/components/NavBar'
 import { ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon } from '@mui/icons-material';
 import ProfileComponent from '@/components/ProfileComponent';
@@ -97,6 +97,7 @@ export default function BlogPostPage() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'comment', id: number } | null>(null)
   const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([])
+  const [authAlert, setAuthAlert] = useState(false)
 
   useEffect(() => {
     if (postId) {
@@ -177,31 +178,41 @@ export default function BlogPostPage() {
     }
   }
 
-  const createComment = async (content: string, parentCommentId: number | null = null) => {
-    if (!blogPost) return
-
-    try {
-      const response = await fetch(`/api/blogPosts/${blogPost.id}/comments/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({
-          content,
-          parentCommentId
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create comment')
-      }
-
-      await fetchBlogPost(blogPost.id.toString())
-      setReplyingTo(null)
-    } catch (err) {
-      setError('An error occurred while creating the comment.')
+  const requireAuth = (callback: () => void) => {
+    if (!user) {
+      setAuthAlert(true)
+      return
     }
+    callback()
+  }
+
+  const createComment = async (content: string, parentCommentId: number | null = null) => {
+    requireAuth(async () => {
+      if (!blogPost) return
+
+      try {
+        const response = await fetch(`/api/blogPosts/${blogPost.id}/comments/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: JSON.stringify({
+            content,
+            parentCommentId
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to create comment')
+        }
+
+        await fetchBlogPost(blogPost.id.toString())
+        setReplyingTo(null)
+      } catch (err) {
+        setError('An error occurred while creating the comment.')
+      }
+    })
   }
 
   const editComment = async (commentId: number, newContent: string) => {
@@ -237,26 +248,28 @@ export default function BlogPostPage() {
   }
 
   const voteComment = async (commentId: number, voteType: 'upvote' | 'downvote') => {
-    if (!blogPost) return
+    requireAuth(async () => {
+      if (!blogPost) return
 
-    try {
-      const response = await fetch(`/api/blogPosts/${blogPost.id}/comments/${commentId}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ voteType })
-      })
+      try {
+        const response = await fetch(`/api/blogPosts/${blogPost.id}/comments/${commentId}/vote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: JSON.stringify({ voteType })
+        })
 
-      if (!response.ok) {
-        throw new Error('Failed to vote on comment')
+        if (!response.ok) {
+          throw new Error('Failed to vote on comment')
+        }
+
+        await fetchBlogPost(blogPost.id.toString())
+      } catch (err) {
+        setError('An error occurred while voting on the comment.')
       }
-
-      await fetchBlogPost(blogPost.id.toString())
-    } catch (err) {
-      setError('An error occurred while voting on the comment.')
-    }
+    })
   }
 
   const scrollToComment = (commentId: number) => {
@@ -313,13 +326,15 @@ export default function BlogPostPage() {
   }
 
   const handleReport = (explanation: string) => {
-    if (reportTarget) {
-      if (reportTarget.type === 'post') {
-        reportBlogPost(explanation)
-      } else {
-        reportComment(reportTarget.id, explanation)
+    requireAuth(() => {
+      if (reportTarget) {
+        if (reportTarget.type === 'post') {
+          reportBlogPost(explanation)
+        } else {
+          reportComment(reportTarget.id, explanation)
+        }
       }
-    }
+    })
     setReportTarget(null)
   }
 
@@ -462,26 +477,28 @@ export default function BlogPostPage() {
   }
 
   const voteBlogPost = async (voteType: 'upvote' | 'downvote') => {
-    if (!blogPost) return
+    requireAuth(async () => {
+      if (!blogPost) return
 
-    try {
-      const response = await fetch(`/api/blogPosts/${blogPost.id}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ voteType })
-      })
+      try {
+        const response = await fetch(`/api/blogPosts/${blogPost.id}/vote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: JSON.stringify({ voteType })
+        })
 
-      if (!response.ok) {
-        throw new Error('Failed to vote on blog post')
+        if (!response.ok) {
+          throw new Error('Failed to vote on blog post')
+        }
+
+        await fetchBlogPost(blogPost.id.toString())
+      } catch (err) {
+        setError('An error occurred while voting on the blog post.')
       }
-
-      await fetchBlogPost(blogPost.id.toString())
-    } catch (err) {
-      setError('An error occurred while voting on the blog post.')
-    }
+    })
   }
 
   const deleteBlogPost = async () => {
@@ -750,6 +767,20 @@ export default function BlogPostPage() {
           title={reportTarget?.type === 'post' ? 'Report Blog Post' : 'Report Comment'}
         />
       </div>
+      <Snackbar
+        open={authAlert}
+        autoHideDuration={6000}
+        onClose={() => setAuthAlert(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setAuthAlert(false)} 
+          severity="warning"
+          sx={{ width: '100%' }}
+        >
+          Please sign in to perform this action
+        </Alert>
+      </Snackbar>
     </div>
   )
 }
