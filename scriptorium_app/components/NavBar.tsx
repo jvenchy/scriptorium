@@ -183,8 +183,23 @@ export const Navbar: React.FC<NavbarProps> = ({
           </Typography>
         </ListItem>
 
-        <Link href="/myTemplates" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItemButton>
+        {isAuthenticated ? (
+          <Link href="/my-templates" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <BookmarkIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Saved Templates"
+                primaryTypographyProps={{
+                  fontFamily: 'monospace',
+                  color: 'black',
+                }}
+              />
+            </ListItemButton>
+          </Link>
+        ) : (
+          <ListItemButton onClick={() => setShowAuthModal(true)}>
             <ListItemIcon>
               <BookmarkIcon />
             </ListItemIcon>
@@ -196,7 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
             />
           </ListItemButton>
-        </Link>
+        )}
       </List>
 
       {/* Auth Feedback Modal */}
