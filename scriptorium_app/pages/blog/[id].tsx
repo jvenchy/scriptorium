@@ -98,6 +98,9 @@ export default function BlogPostPage() {
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'comment', id: number } | null>(null)
   const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([])
   const [authAlert, setAuthAlert] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [commentsPerPage] = useState(10);
 
   useEffect(() => {
     if (postId) {
@@ -115,6 +118,12 @@ export default function BlogPostPage() {
       )
     }
   }, [blogPost])
+
+  useEffect(() => {
+    if (blogPost) {
+      fetchComments(currentPage);
+    }
+  }, [currentPage, blogPost?.id]);
 
   const fetchBlogPost = async (id: string) => {
     try {
@@ -137,6 +146,31 @@ export default function BlogPostPage() {
       setIsLoading(false)
     }
   }
+
+  const fetchComments = async (page: number) => {
+    if (!blogPost) return;
+    
+    try {
+      const response = await fetch(
+        `/api/blogPosts/${blogPost.id}/comments?page=${page}&limit=${commentsPerPage}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
+      }
+
+      const data = await response.json();
+      setBlogPost(prev => prev ? { ...prev, comments: data.comments } : null);
+      setTotalPages(data.pagination.totalPages);
+    } catch (err) {
+      setError('An error occurred while fetching comments.');
+    }
+  };
 
   const handleTemplateSelect = (template: Template) => {
     if (!selectedTemplates.some(t => t.id === template.id)) {
@@ -551,6 +585,28 @@ export default function BlogPostPage() {
     }
   }
 
+  const PaginationControls = () => (
+    <div className="flex justify-center mt-4 space-x-2">
+      <Button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(prev => prev - 1)}
+        variant="outlined"
+      >
+        Previous
+      </Button>
+      <span className="mx-4 flex items-center">
+        Page {currentPage} of {totalPages}
+      </span>
+      <Button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage(prev => prev + 1)}
+        variant="outlined"
+      >
+        Next
+      </Button>
+    </div>
+  );
+
   if (isLoading) {
     return <div className="container mx-auto p-4">Loading...</div>
   }
@@ -750,6 +806,7 @@ export default function BlogPostPage() {
             <ul className="space-y-4 mt-4">
               {renderComments(blogPost.comments)}
             </ul>
+            <PaginationControls />
           </section>
           {isEditMode && (
             <div className="mt-8">

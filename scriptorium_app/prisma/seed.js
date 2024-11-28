@@ -97,6 +97,28 @@ async function main() {
   });
 
   console.log('Database seeded with 30 random comments!');
+
+  // Create 30 extra comments specifically on Blog Post 1
+  const blogPost1 = await prisma.blogPost.findFirst({
+    where: { id: 1 },
+  });
+
+  const extraComments = Array.from({ length: 30 }, (_, i) => {
+    const randomUser = allUsers[Math.floor(Math.random() * allUsers.length)];
+    return {
+      content: `This is an extra comment ${i + 1} on Blog Post 1.`,
+      authorId: randomUser.id,
+      blogPostId: blogPost1.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  });
+
+  await prisma.comment.createMany({
+    data: extraComments,
+  });
+
+  console.log('Database seeded with 30 extra comments on Blog Post 1!');
 }
 
 main()

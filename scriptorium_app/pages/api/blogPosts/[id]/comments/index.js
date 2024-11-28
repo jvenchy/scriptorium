@@ -54,6 +54,17 @@ export default async function handler(req, res) {
       orderBy,
       skip,
       take: limitNum,
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            email: true
+          }
+        }
+      }
     });
 
     // Calculate pagination metadata
