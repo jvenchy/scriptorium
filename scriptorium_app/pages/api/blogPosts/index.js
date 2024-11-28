@@ -15,6 +15,7 @@ export default async function handler(req, res) {
       description,
       tags, // Expecting tag names as a comma-separated string
       templateName,
+      templateId,
       sort = 'createdAt', // default sort by creation date
       page = 1,           // default to first page
       limit = 10          // default items per page
@@ -62,15 +63,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // Code templates filter by name instead of ID
-    if (templateName) {
+    // Code templates filter by name or ID
+    if (templateName || templateId) {
+      const templateFilter = {};
+      if (templateId) {
+        templateFilter.id = parseInt(templateId);
+      }
+      if (templateName) {
+        templateFilter.title = { contains: templateName };
+      }
       where.AND.push({
         codeTemplates: {
-          some: {
-            title: {
-              contains: templateName,
-            }
-          }
+          some: templateFilter
         }
       });
     }

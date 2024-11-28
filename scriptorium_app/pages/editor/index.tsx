@@ -17,6 +17,7 @@ import Image from 'next/image'
 import { Navbar } from '@/components/NavBar'
 import ProfileComponent from '@/components/ProfileComponent'
 import { Modal, Box, Typography, Button, Stack } from '@mui/material'
+import Link from 'next/link'
 
 interface CodeTemplate {
   id: number
@@ -35,6 +36,20 @@ interface CodeTemplate {
     avatar: string | null
   }
   forks: any[]
+}
+
+interface BlogPost {
+  id: number
+  title: string
+  description: string
+  author: {
+    firstName: string
+    lastName: string
+  }
+  stats: {
+    upvotes: number
+    comments: number
+  }
 }
 
 const DEFAULT_TEMPLATE = {
@@ -99,6 +114,10 @@ export default function EditorPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState<'save' | 'fork' | null>(null)
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const POSTS_PER_PAGE = 5
 
   const isAuthor = !templateId || user?.id === template?.authorId
 
@@ -127,6 +146,22 @@ export default function EditorPage() {
       setTags(DEFAULT_TEMPLATE.tags.map(tag => tag.name))
     }
   }, [templateId])
+
+  useEffect(() => {
+    if (templateId) {
+      fetch(`/api/blogPosts?templateId=${templateId}&page=${currentPage}&limit=${POSTS_PER_PAGE}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          setRelatedPosts(data.posts)
+          setTotalPages(data.pagination.totalPages)
+        })
+        .catch(error => console.error('Failed to fetch related posts:', error))
+    }
+  }, [templateId, currentPage])
 
   const runCode = async () => {
     setIsRunning(true)
@@ -288,9 +323,7 @@ export default function EditorPage() {
       <Navbar
         isAuthenticated={!!user}
         onAuthClick={() => {}}
-        onLogoutClick={() => {
-          // Add your logout logic here
-        }}
+        onLogoutClick={() => {}}
         user={user}
         onCreatePostClick={() => router.push('/createPost')}
       />
@@ -355,6 +388,59 @@ export default function EditorPage() {
               <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
             </div>
             <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
+            
+            {templateId && (
+              <div className="mt-12 border-t pt-8">
+                <h2 className="text-2xl font-helvetica font-semibold mb-4">Related Blog Posts</h2>
+                {relatedPosts.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 gap-4 mb-4">
+                      {relatedPosts.map(post => (
+                        <Link href={`/blog/${post.id}`} key={post.id}>
+                          <div className="p-4 border rounded-lg hover:shadow-lg transition-shadow">
+                            <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+                            <span className="text-sm text-gray-500">
+                              By {post.author.firstName} {post.author.lastName}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        <button
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          className={`px-3 py-1 rounded ${
+                            currentPage === 1 
+                              ? 'bg-gray-100 text-gray-400' 
+                              : 'bg-gray-200 hover:bg-gray-300'
+                          }`}
+                        >
+                          Previous
+                        </button>
+                        <span className="px-3 py-1">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          className={`px-3 py-1 rounded ${
+                            currentPage === totalPages 
+                              ? 'bg-gray-100 text-gray-400' 
+                              : 'bg-gray-200 hover:bg-gray-300'
+                          }`}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-500">No related blog posts found.</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -383,16 +469,10 @@ export default function EditorPage() {
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center">
             <Button 
-              variant="contained" 
-              onClick={() => router.push('/auth')}
-            >
-              Sign In
-            </Button>
-            <Button 
               variant="outlined" 
               onClick={closeAuthModal}
             >
-              Cancel
+              Close
             </Button>
           </Stack>
         </Box>

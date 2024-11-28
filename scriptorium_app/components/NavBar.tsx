@@ -223,11 +223,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             You need to sign in to access features like creating posts, commenting, and saving templates.
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center">
-            <Button variant="contained" onClick={closeModal}>
-              Sign In
-            </Button>
             <Button variant="outlined" onClick={() => setShowAuthModal(false)}>
-              Cancel
+              Close
             </Button>
           </Stack>
         </Box>
