@@ -22,6 +22,7 @@ interface Post {
   id: number;
   title: string;
   description: string;
+  isHidden: boolean;
   author: {
     id: number;
     email: string;
@@ -111,116 +112,118 @@ export const BlogPostList: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {searchResults.length > 0 ? (
-          searchResults.map((post: Post) => (
-            <Grid item xs={12} sm={6} md={4} key={post.id}>
-              <Link 
-                href={`/blog/${post.id}`} 
-                style={{ textDecoration: 'none' }}
-              >
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom
-                      sx={{ 
-                        fontFamily: 'Helvetica, Arial, sans-serif',
-                        fontWeight: 'bold',
-                        mb: 1
-                      }}
-                    >
-                      {post.title}
-                    </Typography>
-
-                    <Typography 
-                      variant="body2" 
-                      color="text.primary"
-                      sx={{ 
-                        fontFamily: 'Helvetica, Arial, sans-serif',
-                        height: '2em',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      // {post.author.firstName} {post.author.lastName}
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ 
-                        fontFamily: 'monospace',
-                        mb: 2,
-                        height: '3em',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {post.description}
-                    </Typography>
-                    
-                    <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
-                      {post.tags.map((tag: {id: number; name: string}) => (
-                        <Chip key={tag.id} label={tag.name} size="small" />
-                      ))}
-                    </Stack>
-                    
-                    {post.codeTemplates && post.codeTemplates.length > 0 && (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'dodgerblue',
-                          fontFamily: 'monospace',
-                          mb: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
+          searchResults
+            .filter((post: Post) => !post.isHidden)
+            .map((post: Post) => (
+              <Grid item xs={12} sm={6} md={4} key={post.id}>
+                <Link 
+                  href={`/blog/${post.id}`} 
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom
+                        sx={{ 
+                          fontFamily: 'Helvetica, Arial, sans-serif',
+                          fontWeight: 'bold',
+                          mb: 1
                         }}
                       >
-                        <Tooltip title="Template linked to blog post">
-                          <IconButton size="small" sx={{ color: 'dodgerblue', padding: 0 }}>
-                            <LinkIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        Template: {post.codeTemplates[0].title}
+                        {post.title}
                       </Typography>
-                    )}
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                      <Box>
-                        <Tooltip title="Upvotes">
-                          <IconButton size="small">
-                            <ThumbUpIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.upvotes || 0}</Typography>
-                        <Tooltip title="Downvotes">
-                          <IconButton size="small">
-                            <ThumbDownIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.downvotes || 0}</Typography>
-                        <Tooltip title="Comments">
-                          <IconButton size="small">
-                            <CommentIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Typography variant="caption">{post.stats?.comments || 0}</Typography>
+
+                      <Typography 
+                        variant="body2" 
+                        color="text.primary"
+                        sx={{ 
+                          fontFamily: 'Helvetica, Arial, sans-serif',
+                          height: '2em',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        // {post.author.firstName} {post.author.lastName}
+                      </Typography>
+                      
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontFamily: 'monospace',
+                          mb: 2,
+                          height: '3em',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {post.description}
+                      </Typography>
+                      
+                      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
+                        {post.tags.map((tag: {id: number; name: string}) => (
+                          <Chip key={tag.id} label={tag.name} size="small" />
+                        ))}
+                      </Stack>
+                      
+                      {post.codeTemplates && post.codeTemplates.length > 0 && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'dodgerblue',
+                            fontFamily: 'monospace',
+                            mb: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                          }}
+                        >
+                          <Tooltip title="Template linked to blog post">
+                            <IconButton size="small" sx={{ color: 'dodgerblue', padding: 0 }}>
+                              <LinkIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          Template: {post.codeTemplates[0].title}
+                        </Typography>
+                      )}
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                        <Box>
+                          <Tooltip title="Upvotes">
+                            <IconButton size="small">
+                              <ThumbUpIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.upvotes || 0}</Typography>
+                          <Tooltip title="Downvotes">
+                            <IconButton size="small">
+                              <ThumbDownIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.downvotes || 0}</Typography>
+                          <Tooltip title="Comments">
+                            <IconButton size="small">
+                              <CommentIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Typography variant="caption">{post.stats?.comments || 0}</Typography>
+                        </Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(post.createdAt).toLocaleDateString()}
+                        </Typography>
                       </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Link>
-            </Grid>
-          ))
+                    </CardContent>
+                  </Card>
+                </Link>
+              </Grid>
+            ))
         ) : (
           <Grid item xs={12}>
             <Typography variant="body1" sx={{ textAlign: 'center' }}>
