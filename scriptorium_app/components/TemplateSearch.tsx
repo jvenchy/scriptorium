@@ -35,13 +35,6 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
       // Add title parameter for both empty and non-empty searches
       queryParams.append('title', inputValue);
 
-      // Always include author filter if userOnly is true
-      if (userOnly && user?.id) {
-        queryParams.append('author', user.id.toString());
-      }
-
-      console.log('Fetching with params:', queryParams.toString()); // Debug log
-
       const response = await fetch(`/api/code-templates?${queryParams}`);
       if (!response.ok) {
         const errorData = await response.json();
@@ -50,7 +43,6 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
       }
       
       const data = await response.json();
-      console.log('Received data:', data); // Debug log
       
       // Filter out already selected templates
       const selectedIds = selectedTemplates.map(t => t.id);
@@ -65,7 +57,6 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
           }
         }));
 
-      console.log('Filtered templates:', filteredTemplates); // Debug log
       return filteredTemplates;
     } catch (error) {
       console.error('Failed to fetch templates:', error);
