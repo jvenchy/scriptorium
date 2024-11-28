@@ -54,11 +54,9 @@ export const BlogPostList: React.FC = () => {
 
   // Initial fetch on mount
   useEffect(() => {
-    if (isInitialMount) {
-      fetchPosts();
-      setIsInitialMount(false);
-    }
-  }, [isInitialMount]);
+    fetchPosts();
+    setIsInitialMount(false);
+  }, []);
 
   // Handle search parameter changes
   useEffect(() => {
@@ -113,27 +111,14 @@ export const BlogPostList: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {searchResults.length > 0 ? (
-          searchResults.map((post) => (
+          searchResults.map((post: Post) => (
             <Grid item xs={12} sm={6} md={4} key={post.id}>
               <Link 
                 href={`/blog/${post.id}`} 
                 style={{ textDecoration: 'none' }}
               >
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'scale(1.03)',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                    }
-                  }}
-                >
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ flexGrow: 1 }}>
-                    
                     <Typography 
                       variant="h6" 
                       gutterBottom
@@ -185,7 +170,7 @@ export const BlogPostList: React.FC = () => {
                       ))}
                     </Stack>
                     
-                    {post.codeTemplates.length > 0 && (
+                    {post.codeTemplates && post.codeTemplates.length > 0 && (
                       <Typography
                         variant="caption"
                         sx={{
@@ -198,19 +183,14 @@ export const BlogPostList: React.FC = () => {
                         }}
                       >
                         <Tooltip title="Template linked to blog post">
-                          <IconButton
-                            size="small"
-                            sx={{
-                              color: 'dodgerblue',
-                              padding: 0,
-                            }}
-                          >
+                          <IconButton size="small" sx={{ color: 'dodgerblue', padding: 0 }}>
                             <LinkIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         Template: {post.codeTemplates[0].title}
                       </Typography>
                     )}
+                    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
                       <Box>
                         <Tooltip title="Upvotes">
@@ -218,19 +198,19 @@ export const BlogPostList: React.FC = () => {
                             <ThumbUpIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats.upvotes}</Typography>
+                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.upvotes || 0}</Typography>
                         <Tooltip title="Downvotes">
                           <IconButton size="small">
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats.downvotes}</Typography>
+                        <Typography variant="caption" sx={{ mr: 1 }}>{post.stats?.downvotes || 0}</Typography>
                         <Tooltip title="Comments">
                           <IconButton size="small">
                             <CommentIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Typography variant="caption">{post.stats.comments}</Typography>
+                        <Typography variant="caption">{post.stats?.comments || 0}</Typography>
                       </Box>
                       <Typography variant="caption" color="text.secondary">
                         {new Date(post.createdAt).toLocaleDateString()}

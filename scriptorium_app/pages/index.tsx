@@ -13,12 +13,20 @@ import { TemplateList } from '@/components/TemplateList';
 import SearchBar from "@/components/SearchBar";
 import { Navbar } from '@/components/NavBar';
 import ProfileComponent from '@/components/ProfileComponent';
+import { useSearch } from '@/contexts/SearchContext';
 
 const ScriptoriumLayout: React.FC = () => {
   const { isAuthenticated, logout, user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [contentType, setContentType] = useState<'templates' | 'blogs'>('blogs');
+
+  const { cleanup } = useSearch();
+
+  const handleContentTypeChange = () => {
+    cleanup();
+    setContentType(contentType === 'templates' ? 'blogs' : 'templates');
+  };
 
   return (
     <Box sx={{
@@ -59,7 +67,7 @@ const ScriptoriumLayout: React.FC = () => {
                 <Typography sx={{ fontFamily: 'monospace' }}>Templates</Typography>
                 <Switch
                   checked={contentType === 'blogs'}
-                  onChange={() => setContentType(contentType === 'templates' ? 'blogs' : 'templates')}
+                  onChange={handleContentTypeChange}
                 />
                 <Typography sx={{ fontFamily: 'monospace' }}>Blogs</Typography>
               </Stack>

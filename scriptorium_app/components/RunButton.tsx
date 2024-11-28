@@ -8,10 +8,8 @@ interface RunButtonProps {
       <button
         onClick={onClick}
         disabled={isRunning}
-        className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-          isRunning 
-            ? 'bg-gray-400 cursor-not-allowed' 
-            : 'bg-green-500 hover:bg-green-600 text-white'
+        className={`mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 font-mono ${
+          isRunning ? 'cursor-not-allowed' : ''
         }`}
       >
         {isRunning ? 'Running...' : 'Run Code'}

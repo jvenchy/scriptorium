@@ -5,6 +5,7 @@ export interface SearchParams {
   description: string;
   tags: string;
   blogTemplates: string;
+  codeSnippet?: string;
   contentType: 'templates' | 'blogs';
   sort: 'createdAt_desc' | 'createdAt_asc' | 'upvotes' | 'downvotes';
   page: number;
@@ -65,7 +66,11 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   };
 
   const cleanup = () => {
-    setSearchParams(defaultSearchParams);
+    setSearchParams({
+      ...defaultSearchParams,
+      page: 1,
+      limit: 9
+    });
     setSearchResults([]);
     setPagination({
       currentPage: 1,

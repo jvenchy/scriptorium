@@ -18,6 +18,7 @@ import {
   Edit as EditIcon,
   Home as HomeIcon,
   AdminPanelSettings as AdminIcon,
+  BookmarkBorder as BookmarkIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
 
@@ -182,18 +183,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           </Typography>
         </ListItem>
 
-        <ListItemButton>
-          <ListItemIcon>
-            <CodeIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Saved Templates"
-            primaryTypographyProps={{
-              fontFamily: 'monospace',
-              color: 'black',
-            }}
-          />
-        </ListItemButton>
+        {isAuthenticated ? (
+          <Link href="/my-templates" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <BookmarkIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Saved Templates"
+                primaryTypographyProps={{
+                  fontFamily: 'monospace',
+                  color: 'black',
+                }}
+              />
+            </ListItemButton>
+          </Link>
+        ) : (
+          <ListItemButton onClick={() => setShowAuthModal(true)}>
+            <ListItemIcon>
+              <BookmarkIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Saved Templates"
+              primaryTypographyProps={{
+                fontFamily: 'monospace',
+                color: 'black',
+              }}
+            />
+          </ListItemButton>
+        )}
       </List>
 
       {/* Auth Feedback Modal */}

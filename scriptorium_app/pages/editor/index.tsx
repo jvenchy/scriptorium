@@ -334,12 +334,17 @@ export default function EditorPage() {
           </div>
         )}
 
-        <EditableField
-          value={title}
-          onChange={setTitle}
-          className="text-3xl font-helvetica font-bold mb-6"
-          isEditing={isAuthor}
-        />
+        <div className="mb-6">
+          <label htmlFor="template-title" className="block text-sm font-medium text-gray-700 mb-2">
+            Template Title
+          </label>
+          <EditableField
+            value={title}
+            onChange={setTitle}
+            className="text-3xl font-helvetica font-bold mb-6"
+            isEditing={isAuthor}
+          />
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
