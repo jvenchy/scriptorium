@@ -5,6 +5,7 @@ import {
   Typography,
   Stack,
   Switch,
+  IconButton,
 } from "@mui/material";
 import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,8 @@ import SearchBar from "@/components/SearchBar";
 import { Navbar } from '@/components/NavBar';
 import ProfileComponent from '@/components/ProfileComponent';
 import { useSearch } from '@/contexts/SearchContext';
+import { DarkMode as DarkModeIcon, LightMode as LightModeIcon } from '@mui/icons-material';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const ScriptoriumLayout: React.FC = () => {
   const { isAuthenticated, logout, user } = useAuth();
@@ -22,6 +25,7 @@ const ScriptoriumLayout: React.FC = () => {
   const [contentType, setContentType] = useState<'templates' | 'blogs'>('blogs');
 
   const { cleanup } = useSearch();
+  const { theme, toggleTheme } = useTheme();
 
   const handleContentTypeChange = () => {
     cleanup();
@@ -31,9 +35,10 @@ const ScriptoriumLayout: React.FC = () => {
   return (
     <Box sx={{
       minHeight: "100vh",
-      bgcolor: 'background.default',
-      color: 'common.black',
+      bgcolor: theme.colors.background,
+      color: theme.colors.text,
       display: 'flex',
+      transition: 'background-color 0.3s, color 0.3s'
     }}>
       <Navbar
         isAuthenticated={isAuthenticated}
@@ -64,12 +69,29 @@ const ScriptoriumLayout: React.FC = () => {
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
               <SearchBar contentType={contentType} />
               <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography sx={{ fontFamily: 'monospace' }}>Templates</Typography>
+                <Typography sx={{ 
+                  fontFamily: 'monospace',
+                  color: theme.colors.text 
+                }}>
+                  Templates
+                </Typography>
                 <Switch
                   checked={contentType === 'blogs'}
                   onChange={handleContentTypeChange}
                 />
-                <Typography sx={{ fontFamily: 'monospace' }}>Blogs</Typography>
+                <Typography sx={{ 
+                  fontFamily: 'monospace',
+                  color: theme.colors.text 
+                }}>
+                  Blogs
+                </Typography>
+                <IconButton onClick={toggleTheme} sx={{ ml: 2 }}>
+                  {theme.isDarkMode ? (
+                    <LightModeIcon sx={{ color: theme.colors.iconColor }} />
+                  ) : (
+                    <DarkModeIcon sx={{ color: theme.colors.iconColor }} />
+                  )}
+                </IconButton>
               </Stack>
             </Box>
 
