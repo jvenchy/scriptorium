@@ -16,6 +16,7 @@ import { Avatar, Typography, Button } from '@mui/material'
 import { Navbar } from '@/components/NavBar'
 import { ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon } from '@mui/icons-material';
 import ProfileComponent from '@/components/ProfileComponent';
+import TemplateSearch from '@/components/TemplateSearch'
 
 const defaultAvatar = '/broken-image.jpg'
 
@@ -70,6 +71,11 @@ interface BlogPost {
   downvotes: number
 }
 
+interface Template {
+  id: string
+  title: string
+}
+
 const getImageSrc = (src: string) => {
   return src.startsWith('http') ? src : `/placeholder.svg?height=40&width=40`
 }
@@ -90,12 +96,24 @@ export default function BlogPostPage() {
   const commentRefs = useRef<{ [key: number]: HTMLLIElement | null }>({})
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'comment', id: number } | null>(null)
+  const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([])
 
   useEffect(() => {
     if (postId) {
       fetchBlogPost(postId as string)
     }
   }, [postId])
+
+  useEffect(() => {
+    if (blogPost) {
+      setSelectedTemplates(
+        blogPost.codeTemplates.map(template => ({
+          id: template.id.toString(),
+          title: template.title
+        }))
+      )
+    }
+  }, [blogPost])
 
   const fetchBlogPost = async (id: string) => {
     try {
@@ -119,6 +137,16 @@ export default function BlogPostPage() {
     }
   }
 
+  const handleTemplateSelect = (template: Template) => {
+    if (!selectedTemplates.some(t => t.id === template.id)) {
+      setSelectedTemplates(prev => [...prev, template])
+    }
+  }
+
+  const handleTemplateRemove = (templateId: string) => {
+    setSelectedTemplates(prev => prev.filter(t => t.id !== templateId))
+  }
+
   const saveBlogPost = async () => {
     if (!blogPost || !user) return
 
@@ -132,7 +160,8 @@ export default function BlogPostPage() {
         body: JSON.stringify({
           title,
           description,
-          tags: tags
+          tags: tags,
+          codeTemplates: selectedTemplates.map(t => parseInt(t.id, 10))
         })
       })
 
@@ -619,14 +648,30 @@ export default function BlogPostPage() {
             </div>
 
             {isEditMode ? (
-              <div className="mb-8">
-                <EditableField
-                  value={description}
-                  onChange={setDescription}
-                  multiline
-                  className="prose max-w-none"
-                />
-              </div>
+              <>
+                <div className="mb-8">
+                  <EditableField
+                    value={description}
+                    onChange={setDescription}
+                    multiline
+                    className="prose max-w-none"
+                  />
+                </div>
+                <div className="mb-8">
+                  <Typography variant="h6" sx={{ mb: 2, fontFamily: 'monospace' }}>
+                    Code Templates
+                  </Typography>
+                  <TemplateSearch 
+                    onSelect={handleTemplateSelect}
+                    userOnly={true}
+                    selectedTemplates={selectedTemplates}
+                    onRemove={handleTemplateRemove}
+                  />
+                </div>
+                <div className="mt-8">
+                  <SaveButton onClick={saveBlogPost} />
+                </div>
+              </>
             ) : (
               <>
                 <div className="prose max-w-none mb-8">
