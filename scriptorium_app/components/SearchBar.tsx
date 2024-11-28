@@ -27,63 +27,35 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [templateOptions, setTemplateOptions] = useState<Array<{id: string, title: string}>>([]);
   const { searchParams, setSearchParams, setSearchResults, setPagination } = useSearch();
 
-  // useEffect(() => {
-  //   setSearchParams({ contentType });
-  // }, [contentType, setSearchParams]);
-
-  const fetchTemplates = async (searchText: string) => {
-    try {
-      const queryParams = new URLSearchParams({
-        title: searchText,
-        sort: 'id_desc',
-        page: '1',
-        limit: '10'
-      });
-
-      const response = await fetch(`/api/code-templates?${queryParams}`);
-      if (!response.ok) throw new Error("Failed to fetch templates");
-
-      const data = await response.json();
-      setTemplateOptions(data.codeTemplates.map((template: any) => ({
-        id: template.id,
-        title: template.title
-      })));
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      setTemplateOptions([]);
-    }
-  };
-
-  const handleTemplateSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    handleInputChange("blogTemplates", value);
-    await fetchTemplates(value);
-  };
+  const handleClose = () => setOpen(false);
 
   const handleSearch = async () => {
     try {
-      // Reset pagination before searching
       setSearchParams({ page: 1 });
       
       const queryParams = new URLSearchParams({
         title: searchParams.title,
-        description: searchParams.description,
-        tags: searchParams.tags,
-        contentType: searchParams.contentType,
         sort: searchParams.sort,
-        page: '1', // Always use page 1 for new searches
+        page: '1',
         limit: searchParams.limit.toString()
       });
 
-      if (searchParams.blogTemplates) {
-        queryParams.append('templateName', searchParams.blogTemplates);
+      if (contentType === 'blogs') {
+        if (searchParams.description) queryParams.append('description', searchParams.description);
+        if (searchParams.tags) queryParams.append('tags', searchParams.tags);
+        if (searchParams.blogTemplates) queryParams.append('templateName', searchParams.blogTemplates);
+      } else {
+        if (searchParams.description) queryParams.append('explanation', searchParams.description);
+        if (searchParams.tags) queryParams.append('tags', searchParams.tags);
+        if (searchParams.codeSnippet) queryParams.append('codeSnippet', searchParams.codeSnippet);
       }
 
-      const response = await fetch(`/api/blogPosts?${queryParams}`);
+      const endpoint = contentType === 'blogs' ? '/api/blogPosts' : '/api/code-templates';
+      const response = await fetch(`${endpoint}?${queryParams}`);
       if (!response.ok) throw new Error("Failed to fetch search results");
 
       const data = await response.json();
-      setSearchResults(data.posts);
+      setSearchResults(contentType === 'blogs' ? data.posts : data.codeTemplates);
       setPagination(data.pagination);
       setOpen(false);
     } catch (error) {
@@ -92,65 +64,32 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    // Reset pagination when any search field changes
-    setSearchParams({ 
-      [field]: value,
-      page: 1 
-    });
+  const handleInputChange = (field: keyof SearchParams, value: string) => {
+    setSearchParams({ [field]: value });
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleTemplateSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchParams({ blogTemplates: value });
   };
 
   return (
     <>
-      <Button
-        variant="outlined"
-        onClick={() => setOpen(true)}
-        startIcon={<SearchIcon />}
-        sx={{
-          borderRadius: "8px",
-          textTransform: "none",
-          px: 2,
-          py: 1,
-          borderColor: "divider",
-          "&:hover": {
-            borderColor: "primary.main",
-            bgcolor: "background.paper",
-          },
-        }}
-      >
-        Search {contentType === "templates" ? "Templates" : "Blog Posts"}
-      </Button>
+      <IconButton onClick={() => setOpen(true)}>
+        <SearchIcon />
+      </IconButton>
 
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: "12px",
-            p: 1
-          }
-        }}
       >
-        <DialogTitle sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          pb: 1
-        }}>
-          <Typography variant="h6">
-            Advanced Search
-          </Typography>
-          <IconButton 
-            edge="end" 
+        <DialogTitle sx={{ m: 0, p: 2 }}>
+          Search {contentType === 'blogs' ? 'Blog Posts' : 'Templates'}
+          <IconButton
             onClick={handleClose}
-            size="small"
-            sx={{ color: 'text.secondary' }}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <CloseIcon />
           </IconButton>
@@ -171,15 +110,30 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 ),
               }}
             />
+            
             <TextField
               fullWidth
-              label="Description"
+              label={contentType === 'blogs' ? "Description" : "Explanation"}
               variant="outlined"
               multiline
               rows={2}
               value={searchParams.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
+
+            {contentType === 'templates' && (
+              <TextField
+                fullWidth
+                label="Code Content"
+                variant="outlined"
+                multiline
+                rows={2}
+                value={searchParams.codeSnippet || ''}
+                onChange={(e) => handleInputChange("codeSnippet", e.target.value)}
+                placeholder="Search within template code"
+              />
+            )}
+
             <TextField
               fullWidth
               label="Tags"
@@ -189,35 +143,56 @@ const SearchBar: React.FC<SearchBarProps> = ({
               onChange={(e) => handleInputChange("tags", e.target.value)}
               helperText="Example: javascript, react, typescript"
             />
-            <TextField
-              fullWidth
-              label="Templates"
-              variant="outlined"
-              value={searchParams.blogTemplates}
-              onChange={handleTemplateSearchChange}
-              helperText="Search by template name"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              select
-              fullWidth
-              label="Sort By"
-              value={searchParams.sort}
-              onChange={(e) => setSearchParams({ 
-                sort: e.target.value as SearchParams['sort'] 
-              })}
-            >
-              <MenuItem value="createdAt_desc">Newest First</MenuItem>
-              <MenuItem value="createdAt_asc">Oldest First</MenuItem>
-              <MenuItem value="upvotes">Most Upvoted</MenuItem>
-              <MenuItem value="downvotes">Most Downvoted</MenuItem>
-            </TextField>
+
+            {contentType === 'blogs' && (
+              <TextField
+                fullWidth
+                label="Templates"
+                variant="outlined"
+                value={searchParams.blogTemplates}
+                onChange={handleTemplateSearchChange}
+                helperText="Search by template name"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
+
+            {contentType === 'blogs' && (
+              <TextField
+                select
+                fullWidth
+                label="Sort By"
+                value={searchParams.sort}
+                onChange={(e) => setSearchParams({ 
+                  sort: e.target.value as SearchParams['sort'] 
+                })}
+              >
+                <MenuItem value="createdAt_desc">Newest First</MenuItem>
+                <MenuItem value="createdAt_asc">Oldest First</MenuItem>
+                <MenuItem value="upvotes">Most Upvoted</MenuItem>
+                <MenuItem value="downvotes">Most Downvoted</MenuItem>
+              </TextField>
+            )}
+
+            {contentType === 'templates' && (
+              <TextField
+                select
+                fullWidth
+                label="Sort By"
+                value={searchParams.sort}
+                onChange={(e) => setSearchParams({ 
+                  sort: e.target.value as SearchParams['sort'] 
+                })}
+              >
+                <MenuItem value="createdAt_desc">Newest First</MenuItem>
+                <MenuItem value="createdAt_asc">Oldest First</MenuItem>
+              </TextField>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>

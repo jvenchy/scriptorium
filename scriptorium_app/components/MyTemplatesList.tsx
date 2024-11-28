@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -8,47 +8,25 @@ import {
   Pagination,
   Grid,
   Chip,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import { useSearch } from '@/contexts/SearchContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
-interface Template {
-  id: number;
-  title: string;
-  explanation: string;
-  codeSnippet: string;
-  author: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
-  tags: Array<{
-    id: number;
-    name: string;
-  }>;
-  createdAt: string;
-}
-
-const ITEMS_PER_PAGE = 10;
-
-export const TemplateList: React.FC = () => {
+export const MyTemplatesList: React.FC = () => {
   const { searchParams, setSearchParams, searchResults, setSearchResults, pagination, setPagination } = useSearch();
+  const { user } = useAuth();
   const [isInitialMount, setIsInitialMount] = useState(true);
 
-  // Initial fetch on mount
   useEffect(() => {
-    if (isInitialMount) {
+    if (isInitialMount && user) {
       fetchTemplates();
       setIsInitialMount(false);
     }
-  }, [isInitialMount]);
+  }, [isInitialMount, user]);
 
-  // Handle search parameter changes
   useEffect(() => {
-    if (!isInitialMount) {
+    if (!isInitialMount && user) {
       setSearchParams({ page: 1 });
       const timeoutId = setTimeout(fetchTemplates, 500);
       return () => clearTimeout(timeoutId);
@@ -60,24 +38,21 @@ export const TemplateList: React.FC = () => {
     searchParams.sort
   ]);
 
-  // New effect for page changes
   useEffect(() => {
-    if (!isInitialMount && searchParams.page) {
+    if (!isInitialMount && searchParams.page && user) {
       fetchTemplates();
     }
   }, [searchParams.page]);
 
   const fetchTemplates = async () => {
-    try {
-      if (!searchParams.page) {
-        setSearchParams({ page: 1 });
-        return;
-      }
+    if (!user) return;
 
+    try {
       const queryParams = new URLSearchParams({
-        page: searchParams.page.toString(),
+        page: searchParams.page?.toString() || '1',
         limit: searchParams.limit.toString(),
-        sort: searchParams.sort
+        sort: searchParams.sort,
+        author: user.id.toString()
       });
 
       if (searchParams.title) queryParams.append('title', searchParams.title);
@@ -135,7 +110,6 @@ export const TemplateList: React.FC = () => {
                     >
                       {template.title}
                     </Typography>
-
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
@@ -152,13 +126,11 @@ export const TemplateList: React.FC = () => {
                     >
                       {template.explanation}
                     </Typography>
-                    
                     <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
-                      {template.tags.map((tag: {id: number; name: string}) => (
+                      {template.tags.map((tag) => (
                         <Chip key={tag.id} label={tag.name} size="small" />
                       ))}
                     </Stack>
-                    
                     <Typography variant="caption" color="text.secondary">
                       {new Date(template.createdAt).toLocaleDateString()}
                     </Typography>

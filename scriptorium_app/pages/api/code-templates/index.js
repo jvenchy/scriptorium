@@ -71,11 +71,11 @@ export default async function handler(req, res) {
 
     // Tags filter
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags];
+      const tagArray = Array.isArray(tags) ? tags : tags.split(',').map(tag => tag.trim());
       where.AND.push({
         tags: {
           some: {
-            id: {
+            name: {
               in: tagArray
             }
           }
