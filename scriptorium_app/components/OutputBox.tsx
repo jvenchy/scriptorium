@@ -1,3 +1,5 @@
+import { useTheme } from '@/contexts/ThemeContext'
+
 interface OutputBoxProps {
   output: {
     errorString: string
@@ -6,12 +8,36 @@ interface OutputBoxProps {
 }
 
 export default function OutputBox({ output }: OutputBoxProps) {
+  const { theme } = useTheme()
+  
   return (
-    <div className="bg-gray-100 p-4 rounded-lg">
-      <h2 className="text-2xl font-helvetica font-semibold mb-4">Output</h2>
-      <pre className="font-mono text-sm overflow-auto max-h-60 p-2 bg-white rounded border">
-        {output.errorString && <span className="text-red-500">{output.errorString}</span>}
-        {output.outputString && <span className="text-green-500">{output.outputString}</span>}
+    <div style={{ 
+      backgroundColor: theme.colors.cardBackground,
+      padding: '1rem',
+      borderRadius: '0.5rem',
+      transition: 'all 0.3s ease'
+    }}>
+      <h2 style={{ 
+        fontSize: '1.5rem',
+        fontFamily: 'Helvetica, Arial, sans-serif',
+        fontWeight: 600,
+        marginBottom: '1rem',
+        color: theme.colors.text
+      }}>
+        Output
+      </h2>
+      <pre style={{
+        fontFamily: 'monospace',
+        fontSize: '0.875rem',
+        overflow: 'auto',
+        maxHeight: '15rem',
+        padding: '0.5rem',
+        backgroundColor: theme.isDarkMode ? '#1e1e1e' : '#ffffff',
+        borderRadius: '0.25rem',
+        border: `1px solid ${theme.colors.border}`,
+      }}>
+        {output.errorString && <span style={{ color: '#f44336' }}>{output.errorString}</span>}
+        {output.outputString && <span style={{ color: '#4caf50' }}>{output.outputString}</span>}
       </pre>
     </div>
   )

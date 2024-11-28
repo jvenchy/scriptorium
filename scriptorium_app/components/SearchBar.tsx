@@ -77,7 +77,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <>
-      <IconButton onClick={() => setOpen(true)} sx={{ color: theme.colors.iconColor }}>
+      <IconButton onClick={() => setOpen(true)} sx={{ color: theme.colors.text }}>
         <SearchIcon />
       </IconButton>
 
@@ -123,9 +123,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: 'text.secondary' }} />
+                    <SearchIcon sx={{ color: theme.colors.text }} />
                   </InputAdornment>
                 ),
+              }}
+              FormHelperTextProps={{
+                sx: {
+                  color: theme.colors.text,
+                  opacity: 0.7
+                }
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -208,6 +214,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
               value={searchParams.tags}
               onChange={(e) => handleInputChange("tags", e.target.value)}
               helperText="Example: javascript, react, typescript"
+              FormHelperTextProps={{
+                sx: {
+                  color: theme.colors.text,
+                  opacity: 0.7
+                }
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {
@@ -237,9 +249,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon sx={{ color: 'text.secondary' }} />
+                      <SearchIcon sx={{ color: theme.colors.text }} />
                     </InputAdornment>
                   ),
+                }}
+                FormHelperTextProps={{
+                  sx: {
+                    color: theme.colors.text,
+                    opacity: 0.7
+                  }
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {

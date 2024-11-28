@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/NavBar';
 import TagEditor from '@/components/TagEditor';
 import TemplateSearch from '@/components/TemplateSearch';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Template {
   id: string;
@@ -36,6 +37,7 @@ const CreatePost: React.FC = () => {
   const [error, setError] = useState('');
   const [templateSearch, setTemplateSearch] = useState('');
   const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([]);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -106,7 +108,13 @@ const CreatePost: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      minHeight: '100vh', 
+      bgcolor: theme.colors.background,
+      color: theme.colors.text,
+      transition: 'all 0.3s ease'
+    }}>
       <Navbar
         isAuthenticated={isAuthenticated}
         onAuthClick={() => {}}
@@ -127,15 +135,15 @@ const CreatePost: React.FC = () => {
           elevation={0}
           sx={{ 
             p: 4,
-            border: '1px solid',
-            borderColor: 'divider',
+            bgcolor: theme.colors.cardBackground,
+            border: `1px solid ${theme.colors.border}`,
             borderRadius: 2,
             maxWidth: 800,
             mx: 'auto',
+            transition: 'all 0.3s ease'
           }}
         >
           <Stack spacing={4}>
-            {/* Header */}
             <Box>
               <Typography 
                 variant="h4" 
@@ -143,7 +151,7 @@ const CreatePost: React.FC = () => {
                   mb: 1,
                   fontFamily: 'Helvetica, Arial, sans-serif',
                   fontWeight: 'bold',
-                  color: 'common.black'
+                  color: theme.colors.text
                 }}
               >
                 Create a New Blog Post
@@ -151,7 +159,8 @@ const CreatePost: React.FC = () => {
               <Typography 
                 sx={{ 
                   fontFamily: 'monospace',
-                  color: 'text.secondary'
+                  color: theme.colors.text,
+                  opacity: 0.7
                 }}
               >
                 Share your knowledge with the Scriptorium community
@@ -160,7 +169,6 @@ const CreatePost: React.FC = () => {
 
             <form onSubmit={handleSubmit}>
               <Stack spacing={4}>
-                {/* Title & Description */}
                 <TextField
                   fullWidth
                   label="Title"
@@ -170,8 +178,25 @@ const CreatePost: React.FC = () => {
                   sx={{
                     '& .MuiInputBase-root': { 
                       fontFamily: 'monospace',
-                      bgcolor: 'background.paper'
-                    }
+                      bgcolor: theme.colors.cardBackground,
+                      color: theme.colors.text,
+                      fontSize: '1.25rem',
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: theme.colors.text,
+                      fontFamily: 'monospace',
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: theme.colors.border,
+                      },
+                      '&:hover fieldset': {
+                        borderColor: theme.colors.border,
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.colors.text,
+                      },
+                    },
                   }}
                 />
 
@@ -186,18 +211,35 @@ const CreatePost: React.FC = () => {
                   sx={{
                     '& .MuiInputBase-root': { 
                       fontFamily: 'monospace',
-                      bgcolor: 'background.paper'
-                    }
+                      bgcolor: theme.colors.cardBackground,
+                      color: theme.colors.text,
+                      fontSize: '1rem',
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: theme.colors.text,
+                      fontFamily: 'monospace',
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: theme.colors.border,
+                      },
+                      '&:hover fieldset': {
+                        borderColor: theme.colors.border,
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.colors.text,
+                      },
+                    },
                   }}
                 />
 
-                {/* Tags Section */}
                 <Box>
                   <Typography 
                     variant="h6" 
                     sx={{ 
                       mb: 2,
-                      fontFamily: 'monospace'
+                      fontFamily: 'monospace',
+                      color: theme.colors.text
                     }}
                   >
                     Tags
@@ -208,13 +250,13 @@ const CreatePost: React.FC = () => {
                   />
                 </Box>
 
-                {/* Code Templates Section */}
                 <Box>
                   <Typography 
                     variant="h6" 
                     sx={{ 
                       mb: 2,
-                      fontFamily: 'monospace'
+                      fontFamily: 'monospace',
+                      color: theme.colors.text
                     }}
                   >
                     Code Templates
@@ -244,11 +286,11 @@ const CreatePost: React.FC = () => {
                   size="large"
                   sx={{ 
                     fontFamily: 'monospace',
-                    bgcolor: 'common.black',
-                    color: 'common.white',
+                    bgcolor: theme.isDarkMode ? theme.colors.text : 'common.black',
+                    color: theme.isDarkMode ? theme.colors.background : 'common.white',
                     py: 1.5,
                     '&:hover': {
-                      bgcolor: 'common.black',
+                      bgcolor: theme.isDarkMode ? theme.colors.text : 'common.black',
                       opacity: 0.9,
                     },
                   }}

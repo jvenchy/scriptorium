@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IconButton, TextField, InputAdornment } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface TagEditorProps {
   tags: string[];
@@ -8,8 +9,9 @@ interface TagEditorProps {
   isEditing?: boolean;
 }
 
-const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags}) => {
+const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags }) => {
   const [newTag, setNewTag] = useState('');
+  const { theme } = useTheme();
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -26,9 +28,27 @@ const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags}) => {
     <div className="mb-0">
       <div className="flex flex-wrap gap-2 mb-4">
         {tags.map((tag, index) => (
-          <span key={index} className="bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700">
+          <span 
+            key={index} 
+            style={{
+              backgroundColor: theme.isDarkMode ? '#3a3b4d' : '#e5e7eb',
+              color: theme.colors.text,
+              borderRadius: '9999px',
+              padding: '0.25rem 0.75rem',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+            }}
+          >
             {tag}
-            <button onClick={() => removeTag(tag)} className="ml-2 text-red-500">&times;</button>
+            <button 
+              onClick={() => removeTag(tag)} 
+              style={{ 
+                marginLeft: '0.5rem',
+                color: '#ef4444'
+              }}
+            >
+              &times;
+            </button>
           </span>
         ))}
       </div>
@@ -42,14 +62,33 @@ const TagEditor: React.FC<TagEditorProps> = ({ tags, setTags}) => {
         sx={{
           '& .MuiInputBase-root': { 
             fontFamily: 'monospace',
-            bgcolor: 'background.paper'
+            bgcolor: theme.colors.cardBackground,
+            color: theme.colors.text,
+            '& fieldset': {
+              borderColor: theme.colors.border,
+            },
+            '&:hover fieldset': {
+              borderColor: theme.colors.border,
+            },
           },
-          width: '200px', // Adjust width as needed
+          '& .MuiInputLabel-root': {
+            color: theme.colors.text,
+          },
+          width: '200px',
         }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={addTag} color="primary" aria-label="add tag">
+              <IconButton 
+                onClick={addTag} 
+                sx={{ 
+                  color: theme.colors.iconColor,
+                  '&:hover': {
+                    bgcolor: theme.colors.hover,
+                  }
+                }}
+                aria-label="add tag"
+              >
                 <AddIcon />
               </IconButton>
             </InputAdornment>

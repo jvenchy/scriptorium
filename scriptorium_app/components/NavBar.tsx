@@ -19,6 +19,7 @@ import {
   Home as HomeIcon,
   AdminPanelSettings as AdminIcon,
   BookmarkBorder as BookmarkIcon,
+  Article as ArticleIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -209,12 +210,55 @@ export const Navbar: React.FC<NavbarProps> = ({
         </ListItem>
 
         {isAuthenticated ? (
-          <Link href="/myTemplates" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <ListItemButton sx={{
-              '&:hover': {
-                bgcolor: theme.colors.hover,
-              }
-            }}>
+          <>
+            <Link href="/myTemplates" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton sx={{
+                '&:hover': {
+                  bgcolor: theme.colors.hover,
+                }
+              }}>
+                <ListItemIcon>
+                  <BookmarkIcon sx={{ color: theme.colors.iconColor }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Saved Templates"
+                  primaryTypographyProps={{
+                    fontFamily: 'monospace',
+                    color: theme.colors.text,
+                  }}
+                />
+              </ListItemButton>
+            </Link>
+
+            <Link href="/myBlogPosts" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ListItemButton sx={{
+                '&:hover': {
+                  bgcolor: theme.colors.hover,
+                }
+              }}>
+                <ListItemIcon>
+                  <ArticleIcon sx={{ color: theme.colors.iconColor }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary="My Blog Posts"
+                  primaryTypographyProps={{
+                    fontFamily: 'monospace',
+                    color: theme.colors.text,
+                  }}
+                />
+              </ListItemButton>
+            </Link>
+          </>
+        ) : (
+          <>
+            <ListItemButton 
+              onClick={() => setShowAuthModal(true)}
+              sx={{
+                '&:hover': {
+                  bgcolor: theme.colors.hover,
+                }
+              }}
+            >
               <ListItemIcon>
                 <BookmarkIcon sx={{ color: theme.colors.iconColor }} />
               </ListItemIcon>
@@ -226,27 +270,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
               />
             </ListItemButton>
-          </Link>
-        ) : (
-          <ListItemButton 
-            onClick={() => setShowAuthModal(true)}
-            sx={{
-              '&:hover': {
-                bgcolor: theme.colors.hover,
-              }
-            }}
-          >
-            <ListItemIcon>
-              <BookmarkIcon sx={{ color: theme.colors.iconColor }} />
-            </ListItemIcon>
-            <ListItemText
-              primary="Saved Templates"
-              primaryTypographyProps={{
-                fontFamily: 'monospace',
-                color: theme.colors.text,
+
+            <ListItemButton 
+              onClick={() => setShowAuthModal(true)}
+              sx={{
+                '&:hover': {
+                  bgcolor: theme.colors.hover,
+                }
               }}
-            />
-          </ListItemButton>
+            >
+              <ListItemIcon>
+                <ArticleIcon sx={{ color: theme.colors.iconColor }} />
+              </ListItemIcon>
+              <ListItemText
+                primary="My Blog Posts"
+                primaryTypographyProps={{
+                  fontFamily: 'monospace',
+                  color: theme.colors.text,
+                }}
+              />
+            </ListItemButton>
+          </>
         )}
       </List>
 

@@ -1,3 +1,5 @@
+import { useTheme } from '@/contexts/ThemeContext';
+
 interface LanguageSelectorProps {
   language: string
   setLanguage: (language: string) => void
@@ -5,15 +7,33 @@ interface LanguageSelectorProps {
 
 export default function LanguageSelector({ language, setLanguage }: LanguageSelectorProps) {
   const languages = ['Python', 'JavaScript', 'C', 'C++', 'Java', 'Ruby', 'PHP', 'Perl', 'Bash', 'Lua']
+  const { theme } = useTheme();
 
   return (
     <div>
-      <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-2">
+      <label 
+        htmlFor="language-select" 
+        style={{ 
+          display: 'block',
+          marginBottom: '0.5rem',
+          fontSize: '0.875rem',
+          fontWeight: 500,
+          color: theme.colors.text 
+        }}
+      >
         Select Language
       </label>
       <select
         id="language-select"
-        className="w-full p-2 border rounded font-mono"
+        style={{
+          width: '100%',
+          padding: '0.5rem',
+          borderRadius: '0.25rem',
+          fontFamily: 'monospace',
+          backgroundColor: theme.colors.cardBackground,
+          color: theme.colors.text,
+          border: `1px solid ${theme.colors.border}`,
+        }}
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
       >

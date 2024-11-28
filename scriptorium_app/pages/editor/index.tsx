@@ -15,9 +15,9 @@ import DeleteButton from '@/components/DeleteButton'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import { Navbar } from '@/components/NavBar'
-import ProfileComponent from '@/components/ProfileComponent'
 import { Modal, Box, Typography, Button, Stack } from '@mui/material'
 import Link from 'next/link'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface CodeTemplate {
   id: number
@@ -102,6 +102,7 @@ export default function EditorPage() {
   const searchParams = useSearchParams()
   const templateId = searchParams.get('template')
   const { user } = useAuth()
+  const { theme } = useTheme()
 
   const [template, setTemplate] = useState<CodeTemplate | null>(null)
   const [code, setCode] = useState('')
@@ -316,10 +317,23 @@ export default function EditorPage() {
     setAuthAction(null)
   }
 
-  if (!template) return <div>Loading...</div>
+  if (!template) return (
+    <div style={{ 
+      color: theme.colors.text,
+      backgroundColor: theme.colors.background 
+    }}>
+      Loading...
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen bg-white text-black">
+    <div style={{ 
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: theme.colors.background,
+      color: theme.colors.text,
+      transition: 'all 0.3s ease'
+    }}>
       <Navbar
         isAuthenticated={!!user}
         onAuthClick={() => {}}
@@ -328,24 +342,39 @@ export default function EditorPage() {
         onCreatePostClick={() => router.push('/createPost')}
       />
       <div className="flex-grow container mx-auto p-8 ml-60">
-        {user && (
-          <div className="mb-6 flex items-center justify-end space-x-4">
-            <ProfileComponent />
-          </div>
-        )}
-
         <div className="mb-6">
-          <label htmlFor="template-title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label 
+            htmlFor="template-title" 
+            style={{ 
+              color: theme.colors.text,
+              marginBottom: '0.5rem',
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: 500 
+            }}
+          >
             Template Title
           </label>
-          <EditableField
+          <input
+            type="text"
             value={title}
-            onChange={setTitle}
-            className="text-3xl font-helvetica font-bold mb-6"
-            isEditing={isAuthor}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              fontSize: '1.5rem',
+              fontFamily: 'Helvetica, Arial, sans-serif',
+              fontWeight: 'bold',
+              backgroundColor: theme.colors.cardBackground,
+              color: theme.colors.text,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: '0.375rem',
+              transition: 'all 0.3s ease',
+            }}
+            readOnly={!isAuthor}
           />
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
             <LanguageSelector language={language} setLanguage={handleLanguageChange} />
@@ -361,37 +390,100 @@ export default function EditorPage() {
             </div>
             <CodeEditor code={code} setCode={setCode} language={language} />
             <OutputBox output={output} />
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <h2 className="text-2xl font-helvetica font-semibold mb-4">Standard Input</h2>
+            <div style={{ 
+              backgroundColor: theme.colors.cardBackground,
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              border: `1px solid ${theme.colors.border}`,
+            }}>
+              <h2 style={{ 
+                fontSize: '1.5rem',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontWeight: 600,
+                marginBottom: '1rem',
+                color: theme.colors.text 
+              }}>
+                Standard Input
+              </h2>
               <textarea
                 id="stdin"
-                className="w-full p-2 border rounded font-mono bg-white"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  borderRadius: '0.25rem',
+                  fontFamily: 'monospace',
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.text,
+                  border: `1px solid ${theme.colors.border}`,
+                }}
                 rows={3}
                 value={stdin}
                 onChange={(e) => setStdin(e.target.value)}
               />
             </div>
           </div>
+
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-helvetica font-semibold mb-2">Explanation</h2>
-              <EditableField
+              <h2 style={{ 
+                fontSize: '1.5rem',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontWeight: 600,
+                marginBottom: '0.5rem',
+                color: theme.colors.text 
+              }}>
+                Explanation
+              </h2>
+              <textarea
                 value={explanation}
-                onChange={setExplanation}
-                multiline
-                className="w-full p-2 border rounded font-mono"
-                isEditing={isAuthor}
+                onChange={(e) => setExplanation(e.target.value)}
+                style={{
+                  width: '100%',
+                  minHeight: '150px',
+                  padding: '0.75rem',
+                  backgroundColor: theme.colors.cardBackground,
+                  color: theme.colors.text,
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: '0.375rem',
+                  fontFamily: 'monospace',
+                  fontSize: '0.875rem',
+                  resize: 'vertical',
+                  transition: 'all 0.3s ease',
+                }}
+                readOnly={!isAuthor}
               />
             </div>
+
             <div>
-              <h2 className="text-2xl font-helvetica font-semibold mb-2">Tags</h2>
+              <h2 style={{ 
+                fontSize: '1.5rem',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontWeight: 600,
+                marginBottom: '0.5rem',
+                color: theme.colors.text 
+              }}>
+                Tags
+              </h2>
               <TagEditor tags={tags} setTags={setTags} isEditing={isAuthor} />
             </div>
+
             <AuthorInfo author={template.author} forkedFromId={template.forkedFromId} />
-            
+
             {templateId && (
-              <div className="mt-12 border-t pt-8">
-                <h2 className="text-2xl font-helvetica font-semibold mb-4">Related Blog Posts</h2>
+              <div style={{
+                marginTop: '3rem',
+                paddingTop: '2rem',
+                borderTop: `1px solid ${theme.colors.border}`
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  fontWeight: 600,
+                  marginBottom: '1rem',
+                  color: theme.colors.text 
+                }}>
+                  Related Blog Posts
+                </h2>
                 {relatedPosts.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 gap-4 mb-4">
@@ -444,7 +536,7 @@ export default function EditorPage() {
           </div>
         </div>
       </div>
-      
+
       <Modal
         open={showAuthModal}
         onClose={closeAuthModal}
@@ -453,24 +545,33 @@ export default function EditorPage() {
         <Box
           sx={{
             width: 400,
-            bgcolor: 'background.paper',
-            color: 'black',
+            bgcolor: theme.colors.cardBackground,
+            color: theme.colors.text,
             borderRadius: 2,
             boxShadow: 24,
             p: 4,
             textAlign: 'center',
+            border: `1px solid ${theme.colors.border}`,
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2, color: theme.colors.text }}>
             Sign In Required
           </Typography>
-          <Typography sx={{ mb: 3 }}>
+          <Typography sx={{ mb: 3, color: theme.colors.text }}>
             You need to sign in to {authAction === 'save' ? 'save templates' : 'fork this template'}.
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center">
             <Button 
               variant="outlined" 
               onClick={closeAuthModal}
+              sx={{
+                color: theme.colors.text,
+                borderColor: theme.colors.border,
+                '&:hover': {
+                  borderColor: theme.colors.text,
+                  bgcolor: theme.colors.hover,
+                }
+              }}
             >
               Close
             </Button>
@@ -478,5 +579,5 @@ export default function EditorPage() {
         </Box>
       </Modal>
     </div>
-  )
+  );
 }

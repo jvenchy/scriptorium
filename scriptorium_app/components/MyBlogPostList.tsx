@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Card,
@@ -14,10 +14,11 @@ import {
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import CommentIcon from '@mui/icons-material/Comment';
-import LinkIcon from '@mui/icons-material/Link'; 
+import LinkIcon from '@mui/icons-material/Link';
 import { useSearch } from '@/contexts/SearchContext';
-import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import Link from 'next/link';
 
 interface Post {
   id: number;
@@ -47,22 +48,22 @@ interface Post {
   createdAt: string;
 }
 
-const ITEMS_PER_PAGE = 9;
-
-export const BlogPostList: React.FC = () => {
-  const { theme } = useTheme();
+export const MyBlogPostList: React.FC = () => {
   const { searchParams, setSearchParams, searchResults, setSearchResults, pagination, setPagination } = useSearch();
+  const { user } = useAuth();
+  const { theme } = useTheme();
   const [isInitialMount, setIsInitialMount] = useState(true);
 
-  // Initial fetch on mount
   useEffect(() => {
-    fetchPosts();
-    setIsInitialMount(false);
-  }, []);
+    if (user) {
+      fetchPosts();
+      setIsInitialMount(false);
+    }
+  }, [user]);
 
-  // Handle search parameter changes
   useEffect(() => {
-    if (!isInitialMount) {
+    if (!isInitialMount && user) {
+      setSearchParams({ page: 1 });
       const timeoutId = setTimeout(fetchPosts, 500);
       return () => clearTimeout(timeoutId);
     }
@@ -71,26 +72,34 @@ export const BlogPostList: React.FC = () => {
     searchParams.description,
     searchParams.tags,
     searchParams.blogTemplates,
-    searchParams.page,
     searchParams.sort
   ]);
 
-  const fetchPosts = async () => {
-    try {
-      if (!searchParams.page) {
-        setSearchParams({ page: 1 });
-        return;
-      }
+  useEffect(() => {
+    if (!isInitialMount && searchParams.page && user) {
+      fetchPosts();
+    }
+  }, [searchParams.page]);
 
+  const fetchPosts = async () => {
+    if (!user) return;
+
+    try {
       const queryParams = new URLSearchParams({
-        page: searchParams.page.toString(),
+        page: searchParams.page?.toString() || '1',
         limit: searchParams.limit.toString(),
-        sort: searchParams.sort
+        sort: searchParams.sort,
+        author: user.id.toString()
       });
 
       if (searchParams.title) queryParams.append('title', searchParams.title);
       if (searchParams.description) queryParams.append('description', searchParams.description);
-      if (searchParams.tags) queryParams.append('tags', searchParams.tags);
+      if (searchParams.tags) {
+        const tagNames = Array.isArray(searchParams.tags) ? 
+          searchParams.tags.map(tag => tag.name || tag).join(',') : 
+          searchParams.tags;
+        queryParams.append('tags', tagNames);
+      }
       if (searchParams.blogTemplates) queryParams.append('templateName', searchParams.blogTemplates);
 
       const response = await fetch(`/api/blogPosts?${queryParams}`);
@@ -120,7 +129,7 @@ export const BlogPostList: React.FC = () => {
           searchResults.map((post: Post) => (
             <Grid item xs={12} sm={6} md={4} key={post.id}>
               <Link 
-                href={`/blog/${post.id}`} 
+                href={`/blog/${post.id}`}
                 style={{ textDecoration: 'none' }}
               >
                 <Card sx={{ 
@@ -152,22 +161,6 @@ export const BlogPostList: React.FC = () => {
                     >
                       {post.title}
                     </Typography>
-
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontFamily: 'Helvetica, Arial, sans-serif',
-                        height: '2em',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        color: theme.colors.text
-                      }}
-                    >
-                      // {post.author.firstName} {post.author.lastName}
-                    </Typography>
                     
                     <Typography 
                       variant="body2" 
@@ -185,9 +178,9 @@ export const BlogPostList: React.FC = () => {
                     >
                       {post.description}
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
-                      {post.tags.map((tag: {id: number; name: string}) => (
+                      {post.tags.map((tag) => (
                         <Chip 
                           key={tag.id} 
                           label={tag.name} 
@@ -200,7 +193,7 @@ export const BlogPostList: React.FC = () => {
                         />
                       ))}
                     </Stack>
-                    
+
                     {post.codeTemplates && post.codeTemplates.length > 0 && (
                       <Typography
                         variant="caption"
@@ -221,7 +214,7 @@ export const BlogPostList: React.FC = () => {
                         Template: {post.codeTemplates[0].title}
                       </Typography>
                     )}
-                    
+
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
                       <Box>
                         <Tooltip title="Upvotes">

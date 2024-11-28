@@ -3,6 +3,7 @@ import AsyncSelect from 'react-select/async';
 import { Chip, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Template {
   id: string;
@@ -23,6 +24,7 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
   onRemove 
 }) => {
   const { user } = useAuth();
+  const { theme } = useTheme();
 
   const loadOptions = async (inputValue: string) => {
     try {
@@ -75,7 +77,7 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
   return (
     <div>
       <AsyncSelect
-        cacheOptions={false} // Disable caching to ensure fresh results
+        cacheOptions={false}
         loadOptions={loadOptions}
         onChange={handleChange}
         value={null}
@@ -92,21 +94,68 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
           control: (provided) => ({
             ...provided,
             fontFamily: 'monospace',
-            borderColor: '#ccc',
+            backgroundColor: theme.colors.cardBackground,
+            borderColor: theme.colors.border,
             minHeight: '40px',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              borderColor: theme.colors.text,
+              boxShadow: theme.isDarkMode 
+                ? '0 0 0 1px rgba(255,255,255,0.3)'
+                : '0 0 0 1px rgba(0,0,0,0.2)',
+            },
           }),
           input: (provided) => ({
             ...provided,
+            color: theme.colors.text,
           }),
           menu: (provided) => ({
             ...provided,
             fontFamily: 'monospace',
+            backgroundColor: theme.colors.cardBackground,
+            border: `1px solid ${theme.colors.border}`,
+            boxShadow: theme.isDarkMode 
+              ? '0 4px 20px rgba(0,0,0,0.4)'
+              : '0 4px 20px rgba(0,0,0,0.1)',
           }),
           option: (provided, state) => ({
             ...provided,
             fontFamily: 'monospace',
-            backgroundColor: state.isFocused ? '#e0e0e0' : '#fff',
-            color: '#333',
+            backgroundColor: state.isFocused ? theme.colors.hover : theme.colors.cardBackground,
+            color: theme.colors.text,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            padding: '12px 16px',
+            '&:hover': {
+              backgroundColor: theme.colors.hover,
+              transform: 'translateX(4px)',
+            },
+            '&:active': {
+              backgroundColor: theme.colors.hover,
+              transform: 'translateX(4px) scale(0.99)',
+            },
+          }),
+          singleValue: (provided) => ({
+            ...provided,
+            color: theme.colors.text,
+          }),
+          placeholder: (provided) => ({
+            ...provided,
+            color: theme.colors.text,
+            opacity: 0.7,
+          }),
+          dropdownIndicator: (provided) => ({
+            ...provided,
+            color: theme.colors.text,
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              color: theme.colors.text,
+              opacity: 0.7,
+            },
+          }),
+          indicatorSeparator: (provided) => ({
+            ...provided,
+            backgroundColor: theme.colors.border,
           }),
         }}
       />
@@ -118,7 +167,16 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({
             onDelete={() => onRemove(template.id)}
             sx={{
               fontFamily: 'monospace',
-              backgroundColor: '#e0e0e0',
+              backgroundColor: theme.isDarkMode ? theme.colors.hover : '#e0e0e0',
+              color: theme.colors.text,
+              borderColor: theme.colors.border,
+              '& .MuiChip-deleteIcon': {
+                color: theme.colors.text,
+                '&:hover': {
+                  color: theme.colors.text,
+                  opacity: 0.7,
+                },
+              },
             }}
           />
         ))}

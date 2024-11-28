@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       tags, // Expecting tag names as a comma-separated string
       templateName,
       templateId,
+      author,
       sort = 'createdAt', // default sort by creation date
       page = 1,           // default to first page
       limit = 10          // default items per page
@@ -30,6 +31,13 @@ export default async function handler(req, res) {
     const where = {
       AND: [] // Initialize AND array for combining conditions
     };
+
+    // Author filter
+    if (author) {
+      where.AND.push({
+        authorId: parseInt(author)
+      });
+    }
 
     // Title search
     if (title) {

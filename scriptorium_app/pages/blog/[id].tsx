@@ -17,6 +17,7 @@ import { Navbar } from '@/components/NavBar'
 import { ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon } from '@mui/icons-material';
 import ProfileComponent from '@/components/ProfileComponent';
 import TemplateSearch from '@/components/TemplateSearch'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const defaultAvatar = '/broken-image.jpg'
 
