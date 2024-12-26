@@ -1,3 +1,9 @@
+
+![Screenshot 2024-12-26 at 2 57 36 PM](https://github.com/user-attachments/assets/35cadb24-b74a-4e5c-babb-85e10d661d4c)
+![Screenshot 2024-12-26 at 2 57 57 PM](https://github.com/user-attachments/assets/77db80ff-4afc-4a4c-9f0a-652bcd7279c2)
+![Screenshot 2024-12-26 at 2 58 40 PM](https://github.com/user-attachments/assets/d9de9fbc-c6e3-4390-bd80-176705909810)
+
+
 # Scriptorium Documentation
 
 ## Setup and Running the Server
